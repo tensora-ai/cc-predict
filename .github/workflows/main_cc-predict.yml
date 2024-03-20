@@ -12,7 +12,7 @@ on:
 
 env:
   AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # set this to the path to your web app project, defaults to the repository root
-  PYTHON_VERSION: '3.8' # set this to the python version to use (supports 3.6, 3.7, 3.8)
+  PYTHON_VERSION: '3.10' # set this to the python version to use (supports 3.6, 3.7, 3.8)
 
 jobs:
   build:
@@ -72,4 +72,4 @@ jobs:
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
           scm-do-build-during-deployment: true
           enable-oryx-build: true
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_6AC04C8CA93147C1A62A4A437B6B2CD1 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_B06EC0992E934DBA9A1C789868BAE1D6 }}
