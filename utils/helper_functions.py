@@ -1,9 +1,11 @@
 import torch
 import io
+import os
 import logging
 from models import vgg19
 from PIL import Image
 from torchvision.transforms import transforms
+from azure.storage.blob import BlobServiceClient, BlobClient
 
 # ------------------------------------------------------------------------------
 # Helper definitions
@@ -23,11 +25,22 @@ device = torch.device("cpu")
 # ------------------------------------------------------------------------------
 # Helper functions
 # ------------------------------------------------------------------------------
+def download_model():
+    blob_service_client = BlobServiceClient.from_connection_string(
+        os.environ["BLOB_CONNECTION"]
+    )
+    blob_client = blob_service_client.get_blob_client(
+        os.environ["BLOB_CONTAINER"], "model_nwpu.pth"
+    )
+    return blob_client.download_blob().readall()
+
+
+# ------------------------------------------------------------------------------
 def initialize_model():
     model = vgg19()
     model.to(device)
     model.load_state_dict(
-        torch.load("./utils/model_npwu.pth", map_location="cpu")
+        torch.load(io.BytesIO(download_model()), map_location="cpu")
     )
     model.eval()
     logging.info("Model initialized.")
