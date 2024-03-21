@@ -30,24 +30,32 @@ def predict_endpoint(req: func.HttpRequest):
     now = datetime.now()
     if "camera_id" not in req.params:
         logging.error("Camera ID not provided.")
-        return
-
-    # Make prediction
-    prediction = predict(model=model, image_bytes=req.get_body())
-    logging.info("Prediction made.")
-
-    # Save to databases
+        return "Error, no camera ID provided."
     prediction_id = (
         f"{req.params['camera_id']}_{now.strftime('%Y-%m-%d_%H-%M-%S')}"
     )
 
-    save_image_to_blob(image_bytes=req.get_body(), name=prediction_id)
-    save_prediction_to_cosmosdb(
-        client=cosmosdb_client,
-        prediction=prediction,
-        prediction_id=prediction_id,
-        camera_id=req.params["camera_id"],
-        timestamp=now.strftime("%Y-%m-%dT%H:%M:%S"),
-    )
-    logging.info("Input image and prediction saved to databases.")
+    # Make prediction
+    try:
+        prediction = predict(model=model, image_bytes=req.get_body())
+        logging.info("Prediction made.")
+    except Exception as e:
+        logging.error(f"Prediction failed with error: {e}")
+        return "Error while predicting"
+
+    # Save to databases
+    try:
+        save_image_to_blob(image_bytes=req.get_body(), name=prediction_id)
+        save_prediction_to_cosmosdb(
+            client=cosmosdb_client,
+            prediction=prediction,
+            prediction_id=prediction_id,
+            camera_id=req.params["camera_id"],
+            timestamp=now.strftime("%Y-%m-%dT%H:%M:%S"),
+        )
+        logging.info("Input image and prediction saved to databases.")
+    except Exception as e:
+        logging.error(f"Saving to databases failed with error: {e}")
+        return "Error while saving to databases"
+
     return "Prediction made and saved."

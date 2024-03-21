@@ -10,6 +10,7 @@ from azure.cosmos import CosmosClient
 
 # ------------------------------------------------------------------------------
 # Helper definitions
+# ------------------------------------------------------------------------------
 img_transform = transforms.Compose(
     [
         transforms.ToTensor(),
@@ -21,6 +22,18 @@ img_transform = transforms.Compose(
 
 # ------------------------------------------------------------------------------
 device = torch.device("cpu")
+
+
+# ------------------------------------------------------------------------------
+def resize_if_necessary(image):
+    max_width = 1920
+    max_height = 1080
+
+    # Resize image if it is larger than the maximum allowed size
+    if image.width > max_width or image.height > max_height:
+        image.thumbnail((max_width, max_height), Image.LANCZOS)
+
+    return image
 
 
 # ------------------------------------------------------------------------------
@@ -68,7 +81,8 @@ def initialize_model():
 # ------------------------------------------------------------------------------
 def predict(model, image_bytes):
     # Preprocess given image
-    img = img_transform(Image.open(io.BytesIO(image_bytes)).convert("RGB"))
+    img = resize_if_necessary(Image.open(io.BytesIO(image_bytes)))
+    img = img_transform(img.convert("RGB"))
 
     # Create model input by adding batch dimension
     # (model expects batches, so make a batch of one)
