@@ -51,15 +51,16 @@ def create_cosmos_db_client():
     cosmos_client = CosmosClient(
         os.environ["DB_ENDPOINT"], os.environ["DB_KEY"]
     )
-    database_client = cosmos_client.get_database_client("crowd-counting")
+    database_client = cosmos_client.get_database_client(os.environ["DB_NAME"])
 
-    return database_client.get_container_client("predictions-nuernberg")
+    return database_client.get_container_client(os.environ["DB_CONTAINER_NAME"])
 
 
 # ------------------------------------------------------------------------------
 def download_model():
     blob_client = create_blob_client(
-        blob_name="cc-models", file_name="model_nwpu.pth"
+        blob_name=os.environ["MODELS_BLOB_NAME"],
+        file_name=f"{os.environ['MODEL_NAME']}.pth",
     )
     return blob_client.download_blob().readall()
 
@@ -102,7 +103,7 @@ def predict(model, image_bytes):
 # ------------------------------------------------------------------------------
 def save_image_to_blob(image_bytes, name):
     blob_client = create_blob_client(
-        blob_name="cc-images-nuernberg", file_name=f"{name}.jpg"
+        blob_name=os.environ["IMAGE_BLOB_NAME"], file_name=f"{name}.jpg"
     )
     blob_client.upload_blob(image_bytes, overwrite=True)
     logging.info("Image saved in blob storage.")
