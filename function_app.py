@@ -37,7 +37,7 @@ def predict_endpoint(req: func.HttpRequest):
 
     # Make prediction
     try:
-        prediction = predict(model=model, image_bytes=req.get_body())
+        prediction = predict(session=model, image_bytes=req.get_body())
         logging.info("Prediction made.")
     except Exception as e:
         logging.error(f"Prediction failed with error: {e}")

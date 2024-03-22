@@ -1,12 +1,15 @@
-import torch
 import io
 import os
 import logging
-from utils.models import vgg19
+from torchvision import transforms
+import torch
+import onnxruntime as ort
 from PIL import Image
-from torchvision.transforms import transforms
 from azure.storage.blob import BlobServiceClient
 from azure.cosmos import CosmosClient
+
+# ------------------------------------------------------------------------------
+device = torch.device("cpu")
 
 # ------------------------------------------------------------------------------
 # Helper definitions
@@ -19,9 +22,6 @@ img_transform = transforms.Compose(
         ),
     ]
 )
-
-# ------------------------------------------------------------------------------
-device = torch.device("cpu")
 
 
 # ------------------------------------------------------------------------------
@@ -60,42 +60,40 @@ def create_cosmos_db_client():
 def download_model():
     blob_client = create_blob_client(
         blob_name=os.environ["MODELS_BLOB_NAME"],
-        file_name=f"{os.environ['MODEL_NAME']}.pth",
+        file_name=f"{os.environ['MODEL_NAME']}.onnx",
     )
     return blob_client.download_blob().readall()
 
 
 # ------------------------------------------------------------------------------
-# Model helper functions
-# ------------------------------------------------------------------------------
 def initialize_model():
-    model = vgg19()
-    model.to(device)
-    model.load_state_dict(
-        torch.load(io.BytesIO(download_model()), map_location="cpu")
-    )
-    model.eval()
-    logging.info("Model initialized.")
-    return model
+    model_byte_stream = io.BytesIO(download_model())
+    session = ort.InferenceSession(model_byte_stream.read())
+    logging.info("Model initialized with ONNX Runtime.")
+    return session
 
 
 # ------------------------------------------------------------------------------
-def predict(model, image_bytes):
+def predict(session, image_bytes):
     # Preprocess given image
     img = resize_if_necessary(Image.open(io.BytesIO(image_bytes)))
     img = img_transform(img.convert("RGB"))
 
-    # Create model input by adding batch dimension
-    # (model expects batches, so make a batch of one)
-    inputs = img.unsqueeze(0).to(device)
+    # Create model input as a numpy array
+    inputs = img.unsqueeze(0).to(device).numpy()
+
+    # ONNX Runtime expects input as a dict of input names to numpy arrays
+    ort_inputs = {session.get_inputs()[0].name: inputs}
 
     # Predict
-    with torch.no_grad():
-        outputs, _ = model(inputs)
+    ort_outs = session.run(None, ort_inputs)
 
-    predicted_count = round(torch.sum(outputs).item())
+    # Assuming the first output is the one we need and contains the count
+    outputs, predicted_count = ort_outs[0], ort_outs[0].sum()
 
-    return (outputs[0, 0].cpu().numpy(), predicted_count)
+    # Convert predicted count to Python int and output to Numpy array
+    predicted_count = round(float(predicted_count))
+    return (outputs[0, 0], predicted_count)
 
 
 # ------------------------------------------------------------------------------
