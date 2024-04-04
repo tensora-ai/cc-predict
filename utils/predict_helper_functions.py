@@ -29,6 +29,17 @@ img_transform = transforms.Compose(
 
 
 # ------------------------------------------------------------------------------
+def resize_if_necessary(image):
+    """Resizes the given image if it is larger than the maximum allowed dimensions defined internally. Returns the resized image."""
+    if image.width > max_width or image.height > max_height:
+        image.thumbnail((max_width, max_height), Image.LANCZOS)
+
+    return image
+
+
+# ------------------------------------------------------------------------------
+# Helper functions
+# ------------------------------------------------------------------------------
 def create_masks():
     """Reads in the pixel valued edges of the mask polygon and turn them into masks for density maps. Returns a dictionary of density map masks with camera ids as keys."""
     with open("masks.json", "r") as file:
@@ -76,17 +87,6 @@ def create_masks():
     return result
 
 
-# ------------------------------------------------------------------------------
-def resize_if_necessary(image):
-    """Resizes the given image if it is larger than the maximum allowed dimensions defined internally. Returns the resized image."""
-    if image.width > max_width or image.height > max_height:
-        image.thumbnail((max_width, max_height), Image.LANCZOS)
-
-    return image
-
-
-# ------------------------------------------------------------------------------
-# Helper functions
 # ------------------------------------------------------------------------------
 def initialize_model():
     """Initializes the model and loads the weights from the blob storage. Returns the initialized model."""
