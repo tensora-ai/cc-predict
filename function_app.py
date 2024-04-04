@@ -3,6 +3,7 @@ import logging
 from datetime import datetime
 
 from utils.predict_helper_functions import (
+    create_masks,
     initialize_model,
     predict,
 )
@@ -18,6 +19,7 @@ from utils.database_helper_functions import (
 # ------------------------------------------------------------------------------
 model = initialize_model()
 cosmosdb_client = create_cosmos_db_client()
+masks = create_masks()
 app = func.FunctionApp()
 
 
@@ -49,7 +51,10 @@ def predict_endpoint(req: func.HttpRequest) -> str:
     # Make prediction
     logging.info("Starting prediction.")
     try:
-        prediction = predict(model=model, image_bytes=req.get_body())
+        pred_args = {"model": model, "image_bytes": req.get_body()}
+        if req.params["camera_id"] in masks.keys():
+            pred_args["masks"] = masks[req.params["camera_id"]]
+        prediction = predict(**pred_args)
     except Exception as e:
         logging.error(f"Prediction failed with error: {e}")
         return "Error while predicting"

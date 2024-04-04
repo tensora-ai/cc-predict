@@ -47,11 +47,6 @@ def save_prediction_to_cosmosdb(
     client, prediction, prediction_id, camera_id, timestamp
 ) -> None:
     client.upsert_item(
-        {
-            "id": prediction_id,
-            "camera_id": camera_id,
-            "timestamp": timestamp,
-            "total_count": prediction[1],
-            "prediction": prediction[0].tolist(),
-        }
+        {"id": prediction_id, "camera_id": camera_id, "timestamp": timestamp}
+        | prediction
     )
