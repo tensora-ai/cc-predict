@@ -1,6 +1,6 @@
 {
   "test_camera": {
-    "image_dimensions": [2560, 1440],
+    "image_dimensions": [2592, 1944],
     "masks": [
       {
         "name": "block_7",
