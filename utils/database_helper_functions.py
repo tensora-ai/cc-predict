@@ -1,4 +1,5 @@
 import os
+import json
 from azure.storage.blob import BlobServiceClient
 from azure.cosmos import CosmosClient
 
@@ -43,10 +44,24 @@ def save_image_to_blob(image_bytes, image_name) -> None:
 
 
 # ------------------------------------------------------------------------------
+def save_density_to_blob(density: list[list[float]], image_name: str) -> None:
+    blob_client = create_blob_client(
+        blob_name=os.environ["IMAGE_BLOB_NAME"],
+        file_name=f"{image_name}_density.json",
+    )
+    json_bytes = json.dumps({"prediction": density}).encode("utf-8")
+    blob_client.upload_blob(json_bytes)
+
+
+# ------------------------------------------------------------------------------
 def save_prediction_to_cosmosdb(
     client, prediction, prediction_id, camera_id, timestamp
 ) -> None:
     client.upsert_item(
         {"id": prediction_id, "camera_id": camera_id, "timestamp": timestamp}
-        | prediction
+        | {
+            key: prediction[key]
+            for key in prediction.keys()
+            if key != "prediction"
+        }
     )

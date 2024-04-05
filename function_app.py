@@ -11,6 +11,7 @@ from utils.predict_helper_functions import (
 from utils.database_helper_functions import (
     create_cosmos_db_client,
     save_image_to_blob,
+    save_density_to_blob,
     save_prediction_to_cosmosdb,
 )
 
@@ -60,12 +61,17 @@ def predict_endpoint(req: func.HttpRequest) -> str:
         return "Error while predicting"
     logging.info("Prediction made.")
 
-    # Save input image to blob storage
+    # Save files to blob storage
     logging.info("Starting image upload to blob storage.")
     try:
         save_image_to_blob(image_bytes=req.get_body(), image_name=prediction_id)
+        save_density_to_blob(
+            density=prediction["prediction"], image_name=prediction_id
+        )
     except Exception as e:
-        logging.error(f"Saving image to blob storage failed with error: {e}")
+        logging.error(
+            f"Saving image or density to blob storage failed with error: {e}"
+        )
         return "Error while saving to blob storage"
     logging.info("Image uploaded to blob storage.")
 
