@@ -1,5 +1,6 @@
 import torch
 import io
+import os
 import logging
 import json
 from PIL import Image
@@ -42,6 +43,9 @@ def resize_if_necessary(image):
 # ------------------------------------------------------------------------------
 def create_masks():
     """Reads in the pixel valued edges of the mask polygon and turn them into masks for density maps. Returns a dictionary of density map masks with camera ids as keys."""
+    if not os.path.exists("masks.json"):
+        return {}
+
     with open("masks.json", "r") as file:
         masks_file = json.loads(file.read())
 
@@ -71,6 +75,7 @@ def create_masks():
         result[camera_id] = [
             Mask(
                 name=mask["name"],
+                interpolate=mask["interpolate"],
                 polygon=Polygon(
                     [
                         (
@@ -101,7 +106,7 @@ def initialize_model():
 
 
 # ------------------------------------------------------------------------------
-def predict(model, image_bytes, masks={}) -> dict:
+def predict(model, image_bytes, interpolator, masks=[]) -> dict:
     """Takes a pytorch model, a binary image and potential masks as input. Returns a dict with the predicted density map, the total count of people in the image and (if present) the counts of all masks. The returned dict has the format
     {
         "prediction": list[list[float]],
@@ -115,10 +120,10 @@ def predict(model, image_bytes, masks={}) -> dict:
     img = img_transform(img.convert("RGB"))
     inputs = (img.unsqueeze(0)).to(device)
 
-    # Predict
+    # Predict and interpolate
     with torch.no_grad():
         outputs, _ = model(inputs)
-    density_map = outputs[0, 0].cpu().numpy()
+    density_map = interpolator(outputs[0, 0].cpu().numpy().tolist(), masks)
 
     # Count
     predicted_count = 0
@@ -127,17 +132,18 @@ def predict(model, image_bytes, masks={}) -> dict:
     # ... first sum over all pixels (total and inside every mask)
     for i in range(len(density_map)):
         for j in range(len(density_map[i])):
-            predicted_count += density_map[i][j]
+            pixel_density_value = density_map[i][j]
+            predicted_count += pixel_density_value
             for mask in masks:
                 if mask.polygon.covers(Point(j, i)):
-                    mask_counts[f"count_{mask.name}"] += density_map[i][j]
+                    mask_counts[f"count_{mask.name}"] += pixel_density_value
 
     # ...  then round to nearest integer
     predicted_count = round(predicted_count)
-    mask_counts = {key: round(val) for key, val in mask_counts.items()}
+    mask_counts = {key: round(value) for key, value in mask_counts.items()}
 
     # Return density map and counts
     return {
-        "prediction": density_map.tolist(),
+        "prediction": density_map,
         "total_count": predicted_count,
     } | mask_counts

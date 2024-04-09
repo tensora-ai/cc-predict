@@ -1,13 +1,14 @@
 import azure.functions as func
 import logging
+import os
 from datetime import datetime
 
+from utils.idw_prime_interpolator import IDWprimeInterpolator
 from utils.predict_helper_functions import (
     create_masks,
     initialize_model,
     predict,
 )
-
 from utils.database_helper_functions import (
     create_cosmos_db_client,
     save_image_to_blob,
@@ -21,6 +22,11 @@ from utils.database_helper_functions import (
 model = initialize_model()
 cosmosdb_client = create_cosmos_db_client()
 masks = create_masks()
+interpolator = IDWprimeInterpolator(
+    radius=int(os.environ["INTERPOLATION_RADIUS"]),
+    p=float(os.environ["INTERPOLATION_P"]),
+    interpolation_threshold=float(os.environ["INTERPOLATION_THRESHOLD"]),
+)
 app = func.FunctionApp()
 
 
@@ -52,7 +58,11 @@ def predict_endpoint(req: func.HttpRequest) -> str:
     # Make prediction
     logging.info("Starting prediction.")
     try:
-        pred_args = {"model": model, "image_bytes": req.get_body()}
+        pred_args = {
+            "model": model,
+            "image_bytes": req.get_body(),
+            "interpolator": interpolator,
+        }
         if req.params["camera_id"] in masks.keys():
             pred_args["masks"] = masks[req.params["camera_id"]]
         prediction = predict(**pred_args)
