@@ -1,6 +1,7 @@
-import azure.functions as func
-import logging
 import os
+import json
+import logging
+import azure.functions as func
 from datetime import datetime
 
 from utils.selective_idw_interpolator import SIDWInterpolator
@@ -88,7 +89,7 @@ def predict_endpoint(req: func.HttpRequest) -> str:
     # Save prediction to CosmosDB
     logging.info("Starting prediction upload to CosmosDB.")
     try:
-        save_prediction_to_cosmosdb(
+        db_entry = save_prediction_to_cosmosdb(
             client=cosmosdb_client,
             prediction=prediction,
             prediction_id=prediction_id,
@@ -100,4 +101,6 @@ def predict_endpoint(req: func.HttpRequest) -> str:
         return "Error while saving to CosmosDB"
     logging.info("Prediction uploaded to CosmosDB.")
 
-    return "Prediction made and saved."
+    return func.HttpResponse(
+        json.dumps(db_entry), mimetype="application/json", status_code=200
+    )
