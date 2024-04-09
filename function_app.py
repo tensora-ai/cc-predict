@@ -3,7 +3,7 @@ import logging
 import os
 from datetime import datetime
 
-from utils.idw_prime_interpolator import IDWprimeInterpolator
+from utils.selective_idw_interpolator import SIDWInterpolator
 from utils.predict_helper_functions import (
     create_masks,
     initialize_model,
@@ -22,7 +22,7 @@ from utils.database_helper_functions import (
 model = initialize_model()
 cosmosdb_client = create_cosmos_db_client()
 masks = create_masks()
-interpolator = IDWprimeInterpolator(
+interpolator = SIDWInterpolator(
     radius=int(os.environ["INTERPOLATION_RADIUS"]),
     p=float(os.environ["INTERPOLATION_P"]),
     interpolation_threshold=float(os.environ["INTERPOLATION_THRESHOLD"]),
