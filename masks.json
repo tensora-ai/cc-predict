@@ -1,58 +1,70 @@
 {
-  "test_camera": {
-    "image_dimensions": [2688, 1512],
-    "masks": [
-      {
-        "name": "block_7",
-        "edges": [
-          [2, 802],
-          [10, 964],
-          [426, 1220],
-          [1058, 1138],
-          [588, 834]
-        ],
-        "interpolate": true
-      },
-      {
-        "name": "block_9",
-        "edges": [
-          [598, 832],
-          [1028, 1108],
-          [2192, 1058],
-          [1916, 812]
-        ],
-        "interpolate": true
-      },
-      {
-        "name": "block_11",
-        "edges": [
-          [1920, 810],
-          [2228, 1050],
-          [2630, 1036],
-          [2496, 794]
-        ],
-        "interpolate": true
-      },
-      {
-        "name": "block_10",
-        "edges": [
-          [280, 406],
-          [742, 832],
-          [1710, 818],
-          [1416, 386]
-        ],
-        "interpolate": false
-      },
-      {
-        "name": "block_12",
-        "edges": [
-          [1416, 386],
-          [1710, 818],
-          [2546, 804],
-          [2382, 410]
-        ],
-        "interpolate": false
-      }
-    ]
+  "tribuene": {
+    "block_7": {
+      "image_dimensions": [2688, 1512],
+      "masks": [
+        {
+          "name": "standard_mask",
+          "edges": [
+            [2, 802],
+            [10, 964],
+            [426, 1220],
+            [1058, 1138],
+            [588, 834]
+          ],
+          "interpolate": true
+        }
+      ]
+    },
+    "block_9": {
+      "image_dimensions": [2688, 1512],
+      "masks": [
+        {
+          "name": "standard_mask",
+          "edges": [
+            [2, 802],
+            [10, 964],
+            [426, 1220],
+            [1058, 1138],
+            [588, 834]
+          ],
+          "interpolate": true
+        }
+      ]
+    },
+    "block_11": {
+      "image_dimensions": [2688, 1512],
+      "masks": [
+        {
+          "name": "standard_mask",
+          "edges": [
+            [2, 802],
+            [10, 964],
+            [426, 1220],
+            [1058, 1138],
+            [588, 834]
+          ],
+          "interpolate": true
+        }
+      ]
+    }
+  },
+  "eingang": {
+    "standard": {
+      "image_dimensions": [2688, 1512],
+      "masks": [
+        {
+          "name": "standard_mask",
+          "edges": [
+            [2, 802],
+            [10, 964],
+            [426, 1220],
+            [1058, 1138],
+            [588, 834]
+          ],
+          "interpolate": false
+        }
+      ]
+    }
   }
 }

@@ -23,8 +23,6 @@ class SIDWInterpolator:
             The inverse exponent in the weights of the IDW interpolation.
         interpolation_threshold: float
             The threshold below which points are interpolated.
-        summation_treshold: float
-            The threshold above which points are taken into account for interpolation.
         """
         if radius < 0:
             raise ValueError("radius must be greater than or equal to 0.")

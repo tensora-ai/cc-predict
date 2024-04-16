@@ -42,7 +42,7 @@ def resize_if_necessary(image):
 # Helper functions
 # ------------------------------------------------------------------------------
 def create_masks():
-    """Reads in the pixel valued edges of the mask polygon and turn them into masks for density maps. Returns a dictionary of density map masks with camera ids as keys."""
+    """Reads in the pixel valued edges of the mask polygon and turn them into masks for density maps. Returns a dictionary of density map masks with camera ids + positions as keys."""
     if not os.path.exists("masks.json"):
         return {}
 
@@ -51,43 +51,44 @@ def create_masks():
 
     result = {}
     for camera_id in masks_file.keys():
-        width, height = masks_file[camera_id].pop("image_dimensions")
+        for position in masks_file[camera_id].keys():
+            width, height = masks_file[camera_id][position]["image_dimensions"]
 
-        # Sanity check of input edge values
-        for entry in masks_file[camera_id]["masks"]:
-            for i in range(len(entry["edges"])):
-                if (
-                    entry["edges"][i][0] > width
-                    or entry["edges"][i][1] > height
-                ):
-                    raise ValueError(
-                        f"Mask edge values exceed image dimensions. Camera ID: {camera_id}; Mask name: {entry['name']}"
-                    )
-
-        # Determine scaling factor for mask edges
-        downscale_factor = 0.125  # vgg19 downscales input by a factor of 8
-        if width > max_width or height > max_height:
-            downscale_factor *= (
-                max_width / width if width > height else max_height / height
-            )
-
-        # Scale edges and convert to Polygon
-        result[camera_id] = [
-            Mask(
-                name=mask["name"],
-                interpolate=mask["interpolate"],
-                polygon=Polygon(
-                    [
-                        (
-                            round(downscale_factor * edge[0]),
-                            round(downscale_factor * edge[1]),
+            # Sanity check of input edge values
+            for entry in masks_file[camera_id][position]["masks"]:
+                for i in range(len(entry["edges"])):
+                    if (
+                        entry["edges"][i][0] > width
+                        or entry["edges"][i][1] > height
+                    ):
+                        raise ValueError(
+                            f"Mask edge values exceed image dimensions. Camera ID: {camera_id}; Mask name: {entry['name']}"
                         )
-                        for edge in mask["edges"]
-                    ]
-                ),
-            )
-            for mask in masks_file[camera_id]["masks"]
-        ]
+
+            # Determine scaling factor for mask edges
+            downscale_factor = 0.125  # vgg19 downscales input by a factor of 8
+            if width > max_width or height > max_height:
+                downscale_factor *= (
+                    max_width / width if width > height else max_height / height
+                )
+
+            # Scale edges and convert to Polygon
+            result[f"{camera_id}_{position}"] = [
+                Mask(
+                    name=mask["name"],
+                    interpolate=mask["interpolate"],
+                    polygon=Polygon(
+                        [
+                            (
+                                round(downscale_factor * edge[0]),
+                                round(downscale_factor * edge[1]),
+                            )
+                            for edge in mask["edges"]
+                        ]
+                    ),
+                )
+                for mask in masks_file[camera_id][position]["masks"]
+            ]
 
     return result
 

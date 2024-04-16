@@ -38,7 +38,7 @@ app = func.FunctionApp()
 def health_endpoint(req: func.HttpRequest):
     """Simple health endpoint."""
     logging.info("Health endpoint triggered.")
-    return "healty"
+    return "healthy"
 
 
 # ------------------------------------------------------------------------------
@@ -47,60 +47,72 @@ def predict_endpoint(req: func.HttpRequest) -> str:
     """Endpoint for making predictions. Expects a camera ID in the query parameters and a binary image in the request body. Executes the prediction with the internal model and saves input and predictions to specified databases."""
     logging.info("Predict endpoint triggered.")
 
-    # Preparatory checks and definitions
+    # --- Preparatory checks and definitions ---
     if "camera_id" not in req.params:
         logging.error("Camera ID not provided.")
         return "Error, no camera ID provided."
+    if "position" not in req.params:
+        logging.error("Position not provided.")
+        return "Error, no camera position provided."
+
     now = datetime.now()
+    camera_id = req.params["camera_id"]
+    camera_position = req.params["position"]
     prediction_id = (
-        f"{req.params['camera_id']}_{now.strftime('%Y-%m-%d_%H-%M-%S')}"
+        f"{camera_id}_{camera_position}_{now.strftime('%Y-%m-%d_%H-%M-%S')}"
     )
 
-    # Make prediction
+    # --- Make prediction ---
     logging.info("Starting prediction.")
     try:
+        # Set up relevant arguments
         pred_args = {
             "model": model,
             "image_bytes": req.get_body(),
             "interpolator": interpolator,
         }
-        if req.params["camera_id"] in masks.keys():
-            pred_args["masks"] = masks[req.params["camera_id"]]
-        prediction = predict(**pred_args)
+
+        if f"{camera_id}_{camera_position}" in masks.keys():
+            pred_args["masks"] = masks[f"{camera_id}_{camera_position}"]
+
+        # Start prediction
+        prediction_results = predict(**pred_args)
     except Exception as e:
         logging.error(f"Prediction failed with error: {e}")
-        return "Error while predicting"
+        return f"Error while predicting: {e}"
     logging.info("Prediction made.")
 
-    # Save files to blob storage
+    # --- Save files to blob storage ---
     logging.info("Starting image upload to blob storage.")
     try:
         save_image_to_blob(image_bytes=req.get_body(), image_name=prediction_id)
         save_density_to_blob(
-            density=prediction["prediction"], image_name=prediction_id
+            density=prediction_results["prediction"], image_name=prediction_id
         )
     except Exception as e:
         logging.error(
             f"Saving image or density to blob storage failed with error: {e}"
         )
-        return "Error while saving to blob storage"
+        return f"Error while saving to blob storage: {e}"
     logging.info("Image uploaded to blob storage.")
 
-    # Save prediction to CosmosDB
+    # --- Save prediction to CosmosDB ---
     logging.info("Starting prediction upload to CosmosDB.")
     try:
         db_entry = save_prediction_to_cosmosdb(
             client=cosmosdb_client,
-            prediction=prediction,
+            prediction_results=prediction_results,
             prediction_id=prediction_id,
-            camera_id=req.params["camera_id"],
+            camera_id=camera_id,
+            position=camera_position,
             timestamp=now.strftime("%Y-%m-%dT%H:%M:%S"),
         )
     except Exception as e:
         logging.error(f"Saving predictions to CosmosDB failed with error: {e}")
-        return "Error while saving to CosmosDB"
+        return f"Error while saving to CosmosDB: {e}"
     logging.info("Prediction uploaded to CosmosDB.")
 
+    # --- Return CosmosDB entry in Http resonse ---
     return func.HttpResponse(
         json.dumps(db_entry), mimetype="application/json", status_code=200
     )
