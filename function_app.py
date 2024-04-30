@@ -14,7 +14,7 @@ from utils.database_helper_functions import (
     create_cosmos_db_client,
     save_image_to_blob,
     save_density_to_blob,
-    save_prediction_to_cosmosdb,
+    construct_cosmos_db_entry,
 )
 
 # ------------------------------------------------------------------------------
@@ -47,14 +47,28 @@ def predict_endpoint(req: func.HttpRequest) -> str:
     """Endpoint for making predictions. Expects a camera ID in the query parameters and a binary image in the request body. Executes the prediction with the internal model and saves input and predictions to specified databases."""
     logging.info("Predict endpoint triggered.")
 
-    # --- Preparatory checks and definitions ---
+    # --- Checks and preparations of request parameters ---
     if "camera_id" not in req.params:
         logging.error("Camera ID not provided.")
         return "Error, no camera ID provided."
+
     if "position" not in req.params:
         logging.error("Position not provided.")
         return "Error, no camera position provided."
 
+    if "save_predictions" not in req.params:
+        save_predictions = True
+    elif req.params["save_predictions"].lower() in ["true", "1"]:
+        save_predictions = True
+    elif req.params["save_predictions"].lower() in ["false", "0"]:
+        save_predictions = False
+    else:
+        logging.error(
+            f"Invalid value for query parameter 'save_predictions': {req.params['save_predictions']}."
+        )
+        return "Error, invalid value for query parameter 'save_predictions' provided."
+
+    # --- Preparatory definitions ---
     now = datetime.now()
     camera_id = req.params["camera_id"]
     camera_position = req.params["position"]
@@ -83,34 +97,41 @@ def predict_endpoint(req: func.HttpRequest) -> str:
     logging.info("Prediction made.")
 
     # --- Save files to blob storage ---
-    logging.info("Starting image upload to blob storage.")
-    try:
-        save_image_to_blob(image_bytes=req.get_body(), image_name=prediction_id)
-        save_density_to_blob(
-            density=prediction_results["prediction"], image_name=prediction_id
-        )
-    except Exception as e:
-        logging.error(
-            f"Saving image or density to blob storage failed with error: {e}"
-        )
-        return f"Error while saving to blob storage: {e}"
-    logging.info("Image uploaded to blob storage.")
+    if save_predictions:
+        logging.info("Starting image upload to blob storage.")
+        try:
+            save_image_to_blob(
+                image_bytes=req.get_body(), image_name=prediction_id
+            )
+            save_density_to_blob(
+                density=prediction_results["prediction"],
+                image_name=prediction_id,
+            )
+        except Exception as e:
+            logging.error(
+                f"Saving image or density to blob storage failed with error: {e}"
+            )
+            return f"Error while saving to blob storage: {e}"
+        logging.info("Image uploaded to blob storage.")
 
     # --- Save prediction to CosmosDB ---
-    logging.info("Starting prediction upload to CosmosDB.")
-    try:
-        db_entry = save_prediction_to_cosmosdb(
-            client=cosmosdb_client,
-            prediction_results=prediction_results,
-            prediction_id=prediction_id,
-            camera_id=camera_id,
-            position=camera_position,
-            timestamp=now.strftime("%Y-%m-%dT%H:%M:%S"),
-        )
-    except Exception as e:
-        logging.error(f"Saving predictions to CosmosDB failed with error: {e}")
-        return f"Error while saving to CosmosDB: {e}"
-    logging.info("Prediction uploaded to CosmosDB.")
+    db_entry = construct_cosmos_db_entry(
+        prediction_results=prediction_results,
+        prediction_id=prediction_id,
+        camera_id=camera_id,
+        position=camera_position,
+        timestamp=now.strftime("%Y-%m-%dT%H:%M:%S"),
+    )
+    if save_predictions:
+        logging.info("Starting prediction upload to CosmosDB.")
+        try:
+            cosmosdb_client.upsert_item(body=db_entry)
+        except Exception as e:
+            logging.error(
+                f"Saving predictions to CosmosDB failed with error: {e}"
+            )
+            return f"Error while saving to CosmosDB: {e}"
+        logging.info("Prediction uploaded to CosmosDB.")
 
     # --- Return CosmosDB entry in Http resonse ---
     return func.HttpResponse(

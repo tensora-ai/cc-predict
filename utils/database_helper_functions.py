@@ -54,15 +54,14 @@ def save_density_to_blob(density: list[list[float]], image_name: str) -> None:
 
 
 # ------------------------------------------------------------------------------
-def save_prediction_to_cosmosdb(
-    client,
+def construct_cosmos_db_entry(
     prediction_results: dict,
     prediction_id: str,
     camera_id: str,
     position: str,
     timestamp: str,
 ) -> dict:
-    entry = {
+    return {
         "id": prediction_id,
         "camera_id": camera_id,
         "position": position,
@@ -72,7 +71,3 @@ def save_prediction_to_cosmosdb(
         for key in prediction_results.keys()
         if key != "prediction"
     }
-
-    client.upsert_item(body=entry)
-
-    return entry
