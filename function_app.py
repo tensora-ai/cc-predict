@@ -9,6 +9,7 @@ from utils.predict_helper_functions import (
     create_masks,
     initialize_model,
     predict,
+    prepare_heatmap,
 )
 from utils.database_helper_functions import (
     create_cosmos_db_client,
@@ -45,7 +46,9 @@ def health_endpoint(req: func.HttpRequest):
 @app.route(route="predict")
 def predict_endpoint(req: func.HttpRequest) -> str:
     """Endpoint for making predictions. Expects a camera ID in the query parameters and a binary image in the request body. Executes the prediction with the internal model and saves input and predictions to specified databases."""
-    logging.info("Predict endpoint triggered.")
+    logging.info("Predict endpoint called with arguments:")
+    for key, value in req.params.items():
+        logging.info(f"   {key}: {value}")
 
     # --- Checks and preparations of request parameters ---
     if "camera_id" not in req.params:
@@ -96,12 +99,16 @@ def predict_endpoint(req: func.HttpRequest) -> str:
         return f"Error while predicting: {e}"
     logging.info("Prediction made.")
 
-    # --- Save files to blob storage ---
     if save_predictions:
+        # --- Save original image, heatmap, and raw density to blob storage ---
         logging.info("Starting image upload to blob storage.")
         try:
             save_image_to_blob(
                 image_bytes=req.get_body(), image_name=prediction_id
+            )
+            save_image_to_blob(
+                image_bytes=prepare_heatmap(prediction_results["prediction"]),
+                image_name=f"{prediction_id}_heatmap",
             )
             save_density_to_blob(
                 density=prediction_results["prediction"],
@@ -133,7 +140,7 @@ def predict_endpoint(req: func.HttpRequest) -> str:
             return f"Error while saving to CosmosDB: {e}"
         logging.info("Prediction uploaded to CosmosDB.")
 
-    # --- Return CosmosDB entry in Http resonse ---
+    # --- Return CosmosDB entry in Http response ---
     return func.HttpResponse(
         json.dumps(db_entry), mimetype="application/json", status_code=200
     )

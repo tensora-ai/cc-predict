@@ -78,5 +78,43 @@
         }
       ]
     }
+  },
+  "stage_left": {
+    "standard": {
+      "image_dimensions": [2688, 1512],
+      "masks": [
+        {
+          "name": "standard_mask",
+          "edges": [
+            [30, 462],
+            [30, 491],
+            [668, 845],
+            [2685, 819],
+            [2670, 778],
+            [2235, 473]
+          ],
+          "interpolate": false
+        }
+      ]
+    }
+  },
+  "stage_right": {
+    "standard": {
+      "image_dimensions": [2688, 1512],
+      "masks": [
+        {
+          "name": "standard_mask",
+          "edges": [
+            [30, 462],
+            [30, 491],
+            [668, 845],
+            [2685, 819],
+            [2670, 778],
+            [2235, 473]
+          ],
+          "interpolate": false
+        }
+      ]
+    }
   }
 }
