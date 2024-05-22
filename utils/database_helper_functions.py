@@ -1,5 +1,6 @@
 import os
 import json
+import numpy as np
 from azure.storage.blob import BlobServiceClient
 from azure.cosmos import CosmosClient
 
@@ -12,6 +13,16 @@ def create_blob_client(blob_name, file_name):
         os.environ["BLOB_CONNECTION"]
     )
     return blob_service_client.get_blob_client(blob_name, file_name)
+
+
+# ------------------------------------------------------------------------------
+def save_json_to_blob(json_data, file_name):
+    blob_client = create_blob_client(
+        blob_name=os.environ["IMAGE_BLOB_NAME"],
+        file_name=file_name,
+    )
+    json_bytes = json.dumps(json_data).encode("utf-8")
+    blob_client.upload_blob(json_bytes)
 
 
 # ------------------------------------------------------------------------------
@@ -45,12 +56,30 @@ def save_image_to_blob(image_bytes, image_name) -> None:
 
 # ------------------------------------------------------------------------------
 def save_density_to_blob(density: list[list[float]], image_name: str) -> None:
-    blob_client = create_blob_client(
-        blob_name=os.environ["IMAGE_BLOB_NAME"],
-        file_name=f"{image_name}_density.json",
+    save_json_to_blob(density, f"{image_name}_density.json")
+
+
+# ------------------------------------------------------------------------------
+def save_transformed_density_to_blob(
+    density: list[list[float]],
+    gridded_indices: dict[tuple[float, float], list[int]],
+    image_name: str,
+) -> None:
+    flattened_density = np.array(density).flatten()
+    print(gridded_indices)
+
+    transformed_density = []
+    for x, y in gridded_indices.keys():
+        # NOTE: This logic only works if the density has the dimensions
+        #       (max_width/8, max_height/8), i.e. the input image is not smaller
+        #       than (max_width, max_height).
+        transformed_density.append(
+            (x, y, np.sum(flattened_density[gridded_indices[(x, y)]]))
+        )
+
+    save_json_to_blob(
+        transformed_density, f"{image_name}_transformed_density.json"
     )
-    json_bytes = json.dumps({"prediction": density}).encode("utf-8")
-    blob_client.upload_blob(json_bytes)
 
 
 # ------------------------------------------------------------------------------

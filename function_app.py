@@ -5,6 +5,7 @@ import azure.functions as func
 from datetime import datetime
 
 from utils.selective_idw_interpolator import SIDWInterpolator
+from utils.transformed_density_helper_functions import calculate_gridded_indices
 from utils.predict_helper_functions import (
     create_masks,
     initialize_model,
@@ -15,6 +16,7 @@ from utils.database_helper_functions import (
     create_cosmos_db_client,
     save_image_to_blob,
     save_density_to_blob,
+    save_transformed_density_to_blob,
     construct_cosmos_db_entry,
 )
 
@@ -23,12 +25,20 @@ from utils.database_helper_functions import (
 # ------------------------------------------------------------------------------
 model = initialize_model()
 cosmosdb_client = create_cosmos_db_client()
+
+# Masks for counting only specified areas in the density predictions
 masks = create_masks()
+
+# Interpolators for interpolating the mask areas of density predictions
 interpolator = SIDWInterpolator(
     radius=int(os.environ["INTERPOLATION_RADIUS"]),
     p=float(os.environ["INTERPOLATION_P"]),
     interpolation_threshold=float(os.environ["INTERPOLATION_THRESHOLD"]),
 )
+
+# Real-world grid points with associated indices for transformed density predictions
+gridded_indices = calculate_gridded_indices()
+
 app = func.FunctionApp()
 
 
@@ -75,9 +85,8 @@ def predict_endpoint(req: func.HttpRequest) -> str:
     now = datetime.now()
     camera_id = req.params["camera_id"]
     camera_position = req.params["position"]
-    prediction_id = (
-        f"{camera_id}_{camera_position}_{now.strftime('%Y-%m-%d_%H-%M-%S')}"
-    )
+    camera_id_pos = f"{camera_id}_{camera_position}"
+    prediction_id = f"{camera_id_pos}_{now.strftime('%Y-%m-%d_%H-%M-%S')}"
 
     # --- Make prediction ---
     logging.info("Starting prediction.")
@@ -90,7 +99,7 @@ def predict_endpoint(req: func.HttpRequest) -> str:
         }
 
         if f"{camera_id}_{camera_position}" in masks.keys():
-            pred_args["masks"] = masks[f"{camera_id}_{camera_position}"]
+            pred_args["masks"] = masks[camera_id_pos]
 
         # Start prediction
         prediction_results = predict(**pred_args)
@@ -100,20 +109,31 @@ def predict_endpoint(req: func.HttpRequest) -> str:
     logging.info("Prediction made.")
 
     if save_predictions:
-        # --- Save original image, heatmap, and raw density to blob storage ---
-        logging.info("Starting image upload to blob storage.")
+        # --- Save raw density, original image, heatmap, and, if present, transformed heatmap to blob storage ---
+        logging.info("Starting uploads to blob storage.")
         try:
-            save_image_to_blob(
-                image_bytes=req.get_body(), image_name=prediction_id
-            )
-            save_image_to_blob(
-                image_bytes=prepare_heatmap(prediction_results["prediction"]),
-                image_name=f"{prediction_id}_heatmap",
-            )
             save_density_to_blob(
                 density=prediction_results["prediction"],
                 image_name=prediction_id,
             )
+
+            save_image_to_blob(
+                image_bytes=req.get_body(), image_name=prediction_id
+            )
+
+            save_image_to_blob(
+                image_bytes=prepare_heatmap(prediction_results["prediction"]),
+                image_name=f"{prediction_id}_heatmap",
+            )
+
+            if camera_id_pos in gridded_indices.keys():
+                save_transformed_density_to_blob(
+                    density=prediction_results["prediction"],
+                    gridded_indices=gridded_indices[camera_id_pos],
+                    image_name=prediction_id,
+                )
+
+            logging.info("Uploads to blob storage successful.")
         except Exception as e:
             logging.error(
                 f"Saving image or density to blob storage failed with error: {e}"
