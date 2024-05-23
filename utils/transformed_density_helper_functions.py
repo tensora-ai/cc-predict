@@ -67,8 +67,6 @@ def calculate_gridded_indices() -> (
                     )
 
                     if len(indices[0]) > 0:
-                        if camera_id == "stage_right":
-                            print(indices)
                         indices_dict[(x + 0.5, y + 0.5)] = indices
 
             result[f"{camera_id}_{position}"] = indices_dict
