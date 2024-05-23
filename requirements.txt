@@ -11,3 +11,4 @@ Pillow
 shapely
 numpy
 joblib
+opencv-python-headless
