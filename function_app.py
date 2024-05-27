@@ -10,11 +10,12 @@ from utils.predict_helper_functions import (
     create_masks,
     initialize_model,
     predict,
-    prepare_heatmap,
 )
 from utils.database_helper_functions import (
     create_cosmos_db_client,
     save_image_to_blob,
+    save_downsized_image_to_blob,
+    prepare_heatmap,
     save_density_to_blob,
     save_transformed_density_to_blob,
     construct_cosmos_db_entry,
@@ -118,6 +119,10 @@ def predict_endpoint(req: func.HttpRequest) -> str:
             )
 
             save_image_to_blob(
+                image_bytes=req.get_body(), image_name=prediction_id
+            )
+
+            save_downsized_image_to_blob(
                 image_bytes=req.get_body(), image_name=prediction_id
             )
 

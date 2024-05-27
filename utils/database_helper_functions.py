@@ -1,8 +1,11 @@
 import os
 import json
 import numpy as np
+import cv2
 from azure.storage.blob import BlobServiceClient
 from azure.cosmos import CosmosClient
+from PIL import Image
+import io
 
 
 # ------------------------------------------------------------------------------
@@ -55,6 +58,49 @@ def save_image_to_blob(image_bytes, image_name) -> None:
 
 
 # ------------------------------------------------------------------------------
+def prepare_heatmap(prediction: list[list[float]]):
+    upper_bound = 1.0
+
+    heatmap = np.array(prediction)
+    heatmap[heatmap > upper_bound] = upper_bound
+    heatmap = (heatmap / upper_bound * 255).astype(np.uint8)
+
+    heatmap = cv2.applyColorMap(
+        cv2.resize(heatmap, (1280, 720)), cv2.COLORMAP_JET
+    )
+    return cv2.imencode(".jpg", heatmap)[1].tobytes()
+
+
+# ------------------------------------------------------------------------------
+def save_downsized_image_to_blob(image_bytes, image_name) -> None:
+
+    image = Image.open(io.BytesIO(image_bytes))
+
+    # Resize the image to 720p
+    width, height = image.size
+    if width > height:
+        new_width = 1280
+        new_height = int((new_width / width) * height)
+    else:
+        new_height = 720
+        new_width = int((new_height / height) * width)
+    resized_image = image.resize((new_width, new_height))
+
+    # Convert the image to JPEG format with 80 quality
+    output = io.BytesIO()
+    resized_image.save(output, format="JPEG", quality=80)
+    output.seek(0)
+    resized_image_bytes = output.read()
+
+    # Upload the downsized image to blob storage
+    blob_client = create_blob_client(
+        blob_name=os.environ["IMAGE_BLOB_NAME"],
+        file_name=f"{image_name}_small.jpg",
+    )
+    blob_client.upload_blob(resized_image_bytes)
+
+
+# ------------------------------------------------------------------------------
 def save_density_to_blob(density: list[list[float]], image_name: str) -> None:
     save_json_to_blob(density, f"{image_name}_density.json")
 
@@ -66,7 +112,6 @@ def save_transformed_density_to_blob(
     image_name: str,
 ) -> None:
     flattened_density = np.array(density).flatten()
-    print(gridded_indices)
 
     transformed_density = []
     for x, y in gridded_indices.keys():

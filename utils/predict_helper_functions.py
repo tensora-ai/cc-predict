@@ -3,8 +3,6 @@ import io
 import os
 import logging
 import json
-import cv2
-import numpy as np
 from PIL import Image
 from shapely.geometry import Point, Polygon
 from torchvision.transforms import transforms
@@ -149,17 +147,3 @@ def predict(model, image_bytes, interpolator, masks=[]) -> dict:
         "prediction": density_map,
         "total_count": predicted_count,
     } | mask_counts
-
-
-# ------------------------------------------------------------------------------
-def prepare_heatmap(prediction: list[list[float]]):
-    upper_bound = 1.0
-
-    heatmap = np.array(prediction)
-    heatmap[heatmap > upper_bound] = upper_bound
-    heatmap = (heatmap / upper_bound * 255).astype(np.uint8)
-
-    heatmap = cv2.applyColorMap(
-        cv2.resize(heatmap, (1920, 1080)), cv2.COLORMAP_JET
-    )
-    return cv2.imencode(".jpg", heatmap)[1].tobytes()
