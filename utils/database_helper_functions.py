@@ -66,7 +66,7 @@ def prepare_heatmap(prediction: list[list[float]]):
     heatmap = (heatmap / upper_bound * 255).astype(np.uint8)
 
     heatmap = cv2.applyColorMap(
-        cv2.resize(heatmap, (1280, 720)), cv2.COLORMAP_JET
+        cv2.resize(heatmap, (1280, 562)), cv2.COLORMAP_JET
     )
     return cv2.imencode(".jpg", heatmap)[1].tobytes()
 
