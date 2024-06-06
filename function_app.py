@@ -109,25 +109,6 @@ def predict_endpoint(req: func.HttpRequest) -> str:
         return f"Error while predicting: {e}"
     logging.info("Prediction made.")
 
-    # --- Save prediction to CosmosDB ---
-    db_entry = construct_cosmos_db_entry(
-        prediction_results=prediction_results,
-        prediction_id=prediction_id,
-        camera_id=camera_id,
-        position=camera_position,
-        timestamp=now.strftime("%Y-%m-%dT%H:%M:%S"),
-    )
-    if save_predictions:
-        logging.info("Starting prediction upload to CosmosDB.")
-        try:
-            cosmosdb_client.upsert_item(body=db_entry)
-        except Exception as e:
-            logging.error(
-                f"Saving predictions to CosmosDB failed with error: {e}"
-            )
-            return f"Error while saving to CosmosDB: {e}"
-        logging.info("Prediction uploaded to CosmosDB.")
-
     if save_predictions:
         # --- Save raw density, original image, heatmap, and, if present, transformed heatmap to blob storage ---
         logging.info("Starting uploads to blob storage.")
@@ -164,6 +145,25 @@ def predict_endpoint(req: func.HttpRequest) -> str:
             )
             return f"Error while saving to blob storage: {e}"
         logging.info("Image uploaded to blob storage.")
+
+    # --- Save prediction to CosmosDB ---
+    db_entry = construct_cosmos_db_entry(
+        prediction_results=prediction_results,
+        prediction_id=prediction_id,
+        camera_id=camera_id,
+        position=camera_position,
+        timestamp=now.strftime("%Y-%m-%dT%H:%M:%S"),
+    )
+    if save_predictions:
+        logging.info("Starting prediction upload to CosmosDB.")
+        try:
+            cosmosdb_client.upsert_item(body=db_entry)
+        except Exception as e:
+            logging.error(
+                f"Saving predictions to CosmosDB failed with error: {e}"
+            )
+            return f"Error while saving to CosmosDB: {e}"
+        logging.info("Prediction uploaded to CosmosDB.")
 
     # --- Return CosmosDB entry in Http response ---
     return func.HttpResponse(
