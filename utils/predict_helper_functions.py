@@ -14,7 +14,7 @@ from utils.database_helper_functions import download_model
 # ------------------------------------------------------------------------------
 # Ancillary definitions
 # ------------------------------------------------------------------------------
-max_width, max_height = 1280, 720
+max_width, max_height = 1920, 1080
 device = torch.device("cpu")
 
 # ------------------------------------------------------------------------------
@@ -34,12 +34,17 @@ def resize_if_necessary(image):
     if image.width > max_width or image.height > max_height:
         image.thumbnail((max_width, max_height), Image.LANCZOS)
 
-    if image.width != max_width or image.height != max_height:
-        ar_image = Image.new("RGB", (max_width, max_height))
-        paste_x = (max_width - image.width) // 2
-        paste_y = (max_height - image.height) // 2
-        ar_image.paste(image, (paste_x, paste_y))
-        return ar_image
+    if image.height != max_height:
+        h = (image.height // 16) * 16
+        crop_area = (0, 0, image.width, h)
+        image = image.crop(crop_area)
+        
+    # if image.width != max_width or image.height != max_height:
+    #     ar_image = Image.new("RGB", (max_width, max_height))
+    #     paste_x = (max_width - image.width) // 2
+    #     paste_y = (max_height - image.height) // 2
+    #     ar_image.paste(image, (paste_x, paste_y))
+    #     return ar_image
 
     return image
 
