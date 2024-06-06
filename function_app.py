@@ -131,12 +131,12 @@ def predict_endpoint(req: func.HttpRequest) -> str:
                 image_name=f"{prediction_id}_heatmap",
             )
 
-            if camera_id_pos in gridded_indices.keys():
-                save_transformed_density_to_blob(
-                    density=prediction_results["prediction"],
-                    gridded_indices=gridded_indices[camera_id_pos],
-                    image_name=prediction_id,
-                )
+            # if camera_id_pos in gridded_indices.keys():
+            #     save_transformed_density_to_blob(
+            #         density=prediction_results["prediction"],
+            #         gridded_indices=gridded_indices[camera_id_pos],
+            #         image_name=prediction_id,
+            #     )
 
             logging.info("Uploads to blob storage successful.")
         except Exception as e:
