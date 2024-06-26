@@ -21,7 +21,7 @@ def create_blob_client(blob_name, file_name):
 # ------------------------------------------------------------------------------
 def save_json_to_blob(json_data, file_name):
     blob_client = create_blob_client(
-        blob_name=os.environ["IMAGE_BLOB_NAME"],
+        blob_name="predictions",
         file_name=file_name,
     )
     json_bytes = json.dumps(json_data).encode("utf-8")
@@ -33,26 +33,26 @@ def save_json_to_blob(json_data, file_name):
 # ------------------------------------------------------------------------------
 def download_model():
     blob_client = create_blob_client(
-        blob_name=os.environ["MODELS_BLOB_NAME"],
+        blob_name="models",
         file_name=f"{os.environ['MODEL_NAME']}.pth",
     )
     return blob_client.download_blob().readall()
 
 
 # ------------------------------------------------------------------------------
-def create_cosmos_db_client():
+def create_cosmos_db_client(container_name: str):
     cosmos_client = CosmosClient(
         os.environ["DB_ENDPOINT"], os.environ["DB_KEY"]
     )
-    database_client = cosmos_client.get_database_client(os.environ["DB_NAME"])
+    database_client = cosmos_client.get_database_client("tensora-count")
 
-    return database_client.get_container_client(os.environ["DB_CONTAINER_NAME"])
+    return database_client.get_container_client(container_name)
 
 
 # ------------------------------------------------------------------------------
 def save_image_to_blob(image_bytes, image_name) -> None:
     blob_client = create_blob_client(
-        blob_name=os.environ["IMAGE_BLOB_NAME"], file_name=f"{image_name}.jpg"
+        blob_name="images", file_name=f"{image_name}.jpg"
     )
     blob_client.upload_blob(image_bytes)
 
@@ -94,7 +94,7 @@ def save_downsized_image_to_blob(image_bytes, image_name) -> None:
 
     # Upload the downsized image to blob storage
     blob_client = create_blob_client(
-        blob_name=os.environ["IMAGE_BLOB_NAME"],
+        blob_name="images",
         file_name=f"{image_name}_small.jpg",
     )
     blob_client.upload_blob(resized_image_bytes)
@@ -125,23 +125,3 @@ def save_transformed_density_to_blob(
     save_json_to_blob(
         transformed_density, f"{image_name}_transformed_density.json"
     )
-
-
-# ------------------------------------------------------------------------------
-def construct_cosmos_db_entry(
-    prediction_results: dict,
-    prediction_id: str,
-    camera_id: str,
-    position: str,
-    timestamp: str,
-) -> dict:
-    return {
-        "id": prediction_id,
-        "camera_id": camera_id,
-        "position": position,
-        "timestamp": timestamp,
-    } | {
-        key: prediction_results[key]
-        for key in prediction_results.keys()
-        if key != "prediction"
-    }

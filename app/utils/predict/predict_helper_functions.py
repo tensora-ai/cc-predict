@@ -7,14 +7,14 @@ from PIL import Image
 from shapely.geometry import Point, Polygon
 from torchvision.transforms import transforms
 
-from models.models import Mask
-from utils.dm_count import DMCount
-from utils.database_helper_functions import download_model
+from app.models.models import Mask
+from app.utils.predict.dm_count import DMCount
+from app.utils.database_helper_functions import download_model
 
 # ------------------------------------------------------------------------------
 # Ancillary definitions
 # ------------------------------------------------------------------------------
-max_width, max_height = 1920, 1080
+max_width, max_height = 1280, 720
 device = torch.device("cpu")
 
 # ------------------------------------------------------------------------------
@@ -34,11 +34,11 @@ def resize_if_necessary(image):
     if image.width > max_width or image.height > max_height:
         image.thumbnail((max_width, max_height), Image.LANCZOS)
 
-    if image.height != max_height:
-        h = (image.height // 16) * 16
-        crop_area = (0, 0, image.width, h)
-        image = image.crop(crop_area)
-        
+    # if image.height != max_height:
+    #     h = (image.height // 16) * 16
+    #     crop_area = (0, 0, image.width, h)
+    #     image = image.crop(crop_area)
+
     # if image.width != max_width or image.height != max_height:
     #     ar_image = Image.new("RGB", (max_width, max_height))
     #     paste_x = (max_width - image.width) // 2
@@ -118,14 +118,16 @@ def initialize_model():
 
 
 # ------------------------------------------------------------------------------
-def predict(model, image_bytes, interpolator, masks=[]) -> dict:
-    """Takes a pytorch model, a binary image and potential masks as input. Returns a dict with the predicted density map, the total count of people in the image and (if present) the counts of all masks. The returned dict has the format
+def make_prediction(model, image_bytes, interpolator, masks=[]) -> dict:
+    """Takes a pytorch model, a binary image, an interpolator and potential masks as input. Returns a dict with the predicted density map, the total count of people in the image and (if present) the counts of all masks. The returned dict has the format
     {
         "prediction": list[list[float]],
-        "total_count": int,
-        "count_mask_name_1": int,
-        "count_mask_name_2": int,
-        ...
+        "counts": {
+                    "total": int,
+                    "area_1": int,
+                    "area_2": int,
+                    ...
+                }
     }."""
     # Preprocess given image
     img = resize_if_necessary(Image.open(io.BytesIO(image_bytes)))
@@ -139,7 +141,7 @@ def predict(model, image_bytes, interpolator, masks=[]) -> dict:
 
     # Count
     predicted_count = 0
-    mask_counts = {f"count_{mask.name}": 0 for mask in masks}
+    mask_counts = {mask.name: 0 for mask in masks}
 
     # ... first sum over all pixels (total and inside every mask)
     for i in range(len(density_map)):
@@ -148,14 +150,12 @@ def predict(model, image_bytes, interpolator, masks=[]) -> dict:
             predicted_count += pixel_density_value
             for mask in masks:
                 if mask.polygon.covers(Point(j, i)):
-                    mask_counts[f"count_{mask.name}"] += pixel_density_value
+                    mask_counts[mask.name] += pixel_density_value
 
     # ...  then round to nearest integer
-    predicted_count = round(predicted_count)
-    mask_counts = {key: round(value) for key, value in mask_counts.items()}
+    counts = {"total": round(predicted_count)} | {
+        key: round(value) for key, value in mask_counts.items()
+    }
 
     # Return density map and counts
-    return {
-        "prediction": density_map,
-        "total_count": predicted_count,
-    } | mask_counts
+    return {"prediction": density_map, "counts": counts}

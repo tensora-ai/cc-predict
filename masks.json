@@ -1,262 +1,118 @@
 {
-    "tribuene": {
-        "block_7": {
-            "image_dimensions": [
-                2688,
-                1512
-            ],
-            "masks": [
-                {
-                    "name": "standard_mask",
-                    "edges": [
-                        [
-                            544,
-                            467
-                        ],
-                        [
-                            542,
-                            540
-                        ],
-                        [
-                            808,
-                            679
-                        ],
-                        [
-                            731,
-                            683
-                        ],
-                        [
-                            1157,
-                            892
-                        ],
-                        [
-                            1173,
-                            926
-                        ],
-                        [
-                            2080,
-                            857
-                        ],
-                        [
-                            2079,
-                            818
-                        ],
-                        [
-                            1450,
-                            469
-                        ]
-                    ],
-                    "interpolate": true
-                }
-            ]
-        },
-        "block_9": {
-            "image_dimensions": [
-                2688,
-                1512
-            ],
-            "masks": [
-                {
-                    "name": "standard_mask",
-                    "edges": [
-                        [
-                            30,
-                            462
-                        ],
-                        [
-                            30,
-                            491
-                        ],
-                        [
-                            668,
-                            845
-                        ],
-                        [
-                            2685,
-                            819
-                        ],
-                        [
-                            2670,
-                            778
-                        ],
-                        [
-                            2235,
-                            473
-                        ]
-                    ],
-                    "interpolate": true
-                }
-            ]
-        },
-        "block_11": {
-            "image_dimensions": [
-                2688,
-                1512
-            ],
-            "masks": [
-                {
-                    "name": "standard_mask",
-                    "edges": [
-                        [
-                            882,
-                            466
-                        ],
-                        [
-                            883,
-                            481
-                        ],
-                        [
-                            1296,
-                            791
-                        ],
-                        [
-                            2015,
-                            773
-                        ],
-                        [
-                            1817,
-                            473
-                        ]
-                    ],
-                    "interpolate": true
-                }
-            ]
+  "tribuene": {
+    "block_7": {
+      "image_dimensions": [2688, 1512],
+      "masks": [
+        {
+          "name": "standard_mask",
+          "edges": [
+            [544, 467],
+            [542, 540],
+            [808, 679],
+            [731, 683],
+            [1157, 892],
+            [1173, 926],
+            [2080, 857],
+            [2079, 818],
+            [1450, 469]
+          ],
+          "interpolate": true
         }
+      ]
     },
-    "eingang": {
-        "standard": {
-            "image_dimensions": [
-                2688,
-                1512
-            ],
-            "masks": [
-                {
-                    "name": "standard_mask",
-                    "edges": [
-                        [
-                            573,
-                            224
-                        ],
-                        [
-                            95,
-                            773
-                        ],
-                        [
-                            46,
-                            1482
-                        ],
-                        [
-                            195,
-                            1512
-                        ],
-                        [
-                            678,
-                            1512
-                        ],
-                        [
-                            1526,
-                            1381
-                        ],
-                        [
-                            2316,
-                            1064
-                        ],
-                        [
-                            2646,
-                            863
-                        ],
-                        [
-                            2652,
-                            769
-                        ],
-                        [
-                            1588,
-                            317
-                        ],
-                        [
-                            1366,
-                            221
-                        ],
-                        [
-                            970,
-                            199
-                        ]
-                    ],
-                    "interpolate": false
-                }
-            ]
+    "block_9": {
+      "image_dimensions": [2688, 1512],
+      "masks": [
+        {
+          "name": "standard_mask",
+          "edges": [
+            [30, 462],
+            [30, 491],
+            [668, 845],
+            [2685, 819],
+            [2670, 778],
+            [2235, 473]
+          ],
+          "interpolate": true
         }
+      ]
     },
-    "stage_left": {
-        "standard": {
-            "image_dimensions": [
-                4096,
-                1800
-            ],
-            "masks": [
-                {
-                    "name": "standard_mask",
-                    "edges": [
-                        [
-                            3006,
-                            1366
-                        ],
-                        [
-                            2600,
-                            116
-                        ],
-                        [
-                            1606,
-                            76
-                        ],
-                        [
-                            838,
-                            1015
-                        ],
-                        [
-                            1285,
-                            1366
-                        ]
-                    ],
-                    "interpolate": false
-                }
-            ]
+    "block_11": {
+      "image_dimensions": [2688, 1512],
+      "masks": [
+        {
+          "name": "standard_mask",
+          "edges": [
+            [882, 466],
+            [883, 481],
+            [1296, 791],
+            [2015, 773],
+            [1817, 473]
+          ],
+          "interpolate": true
         }
-    },
-    "stage_right": {
-        "standard": {
-            "image_dimensions": [
-                4096,
-                1800
-            ],
-            "masks": [
-                {
-                    "name": "standard_mask",
-                    "edges": [
-                        [
-                            1756,
-                            232
-                        ],
-                        [
-                            2800,
-                            312
-                        ],
-                        [
-                            3006,
-                            1447
-                        ],
-                        [
-                            2580,
-                            1673
-                        ],
-                        [
-                            788,
-                            1467
-                        ]
-                    ],
-                    "interpolate": false
-                }
-            ]
-        }
+      ]
     }
+  },
+  "eingang": {
+    "standard": {
+      "image_dimensions": [2688, 1512],
+      "masks": [
+        {
+          "name": "standard_mask",
+          "edges": [
+            [573, 224],
+            [95, 773],
+            [46, 1482],
+            [195, 1512],
+            [678, 1512],
+            [1526, 1381],
+            [2316, 1064],
+            [2646, 863],
+            [2652, 769],
+            [1588, 317],
+            [1366, 221],
+            [970, 199]
+          ],
+          "interpolate": false
+        }
+      ]
+    }
+  },
+  "stage_left": {
+    "standard": {
+      "image_dimensions": [3840, 2160],
+      "masks": [
+        {
+          "name": "standard_mask",
+          "edges": [
+            [3006, 1366],
+            [2600, 116],
+            [1606, 76],
+            [838, 1015],
+            [1285, 1366]
+          ],
+          "interpolate": false
+        }
+      ]
+    }
+  },
+  "stage_right": {
+    "standard": {
+      "image_dimensions": [3840, 2160],
+      "masks": [
+        {
+          "name": "standard_mask",
+          "edges": [
+            [1756, 232],
+            [2800, 312],
+            [3006, 1447],
+            [2580, 1673],
+            [788, 1467]
+          ],
+          "interpolate": false
+        }
+      ]
+    }
+  }
 }

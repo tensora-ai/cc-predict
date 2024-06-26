@@ -2,7 +2,7 @@ from shapely.geometry import Point
 import numpy as np
 from joblib import Parallel, delayed
 
-from models.models import Mask
+from app.models.models import Mask
 
 
 # ------------------------------------------------------------------------------

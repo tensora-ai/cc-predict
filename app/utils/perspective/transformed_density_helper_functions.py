@@ -1,8 +1,8 @@
 import json
 import numpy as np
 
-from utils.perspective_transformer import PerspectiveTransformer
-from utils.predict_helper_functions import max_width, max_height
+from app.utils.perspective.perspective_transformer import PerspectiveTransformer
+from app.utils.predict.predict_helper_functions import max_width, max_height
 
 
 # ------------------------------------------------------------------------------

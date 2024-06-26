@@ -1,14 +1,11 @@
-# Do not include azure-functions-worker in this file
-# The Python Worker is managed by the Azure Functions platform
-# Manually managing azure-functions-worker may cause unexpected issues
-
-azure-functions
+python-dotenv
+fastapi
 azure-storage-blob
 azure-cosmos
+numpy<2
 torch==1.11.0 -f https://download.pytorch.org/whl/cpu
 torchvision==0.12.0 -f https://download.pytorch.org/whl/cpu
 Pillow
 shapely
-numpy
 joblib
 opencv-python-headless
