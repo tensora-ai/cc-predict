@@ -128,3 +128,21 @@ class SIDWInterpolator:
                 if 0 < distance <= radius:
                     result[(i, j)] = 1 / distance**p
         return result
+
+
+# ------------------------------------------------------------------------------
+def create_interpolators(cameras: dict) -> dict[str, SIDWInterpolator]:
+    result = {}
+
+    for camera in cameras.keys():
+        for position, settings in cameras[camera]["position_settings"].items():
+            if "interpolation_settings" in settings.keys():
+                result[f"{camera}_{position}"] = SIDWInterpolator(
+                    radius=settings["interpolation_settings"]["radius"],
+                    p=settings["interpolation_settings"]["p"],
+                    interpolation_threshold=settings["interpolation_settings"][
+                        "threshold"
+                    ],
+                )
+
+    return result

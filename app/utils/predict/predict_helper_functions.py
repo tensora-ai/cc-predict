@@ -50,15 +50,15 @@ def resize_if_necessary(image):
 # ------------------------------------------------------------------------------
 # Helper functions
 # ------------------------------------------------------------------------------
-def create_masks(cameras):
+def create_masks(cameras: dict) -> dict[str, list[Mask]]:
     """Reads in the pixel valued edges of the mask polygon and turn them into masks for density maps. Returns a dictionary of density map masks with camera ids + positions as keys."""
     result = {}
-    for camera_id in cameras.keys():
-        for position in cameras[camera_id]["position_settings"].keys():
-            width, height = cameras[camera_id]["resolution"]
+    for camera in cameras.keys():
+        for position in cameras[camera]["position_settings"].keys():
+            width, height = cameras[camera]["resolution"]
 
             # Sanity check of input edge values
-            for entry in cameras[camera_id]["position_settings"][position][
+            for entry in cameras[camera]["position_settings"][position][
                 "area_metadata"
             ]:
                 for edge in entry["edges"]:
@@ -75,9 +75,9 @@ def create_masks(cameras):
                 )
 
             # Scale edges and convert to Polygon
-            result[f"{camera_id}_{position}"] = [
+            result[f"{camera}_{position}"] = [
                 Mask(
-                    name=area_metadata["area"],
+                    name=area_metadata["name"],
                     interpolate=area_metadata["interpolate"],
                     polygon=Polygon(
                         [
@@ -89,7 +89,7 @@ def create_masks(cameras):
                         ]
                     ),
                 )
-                for area_metadata in cameras[camera_id]["position_settings"][
+                for area_metadata in cameras[camera]["position_settings"][
                     position
                 ]["area_metadata"]
             ]
@@ -111,7 +111,7 @@ def initialize_model():
 
 
 # ------------------------------------------------------------------------------
-def make_prediction(model, image_bytes, interpolator, masks=[]) -> dict:
+def make_prediction(model, image_bytes, interpolator=None, masks=[]) -> dict:
     """Takes a pytorch model, a binary image, an interpolator and potential masks as input. Returns a dict with the predicted density map, the total count of people in the image and (if present) the counts of all masks. The returned dict has the format
     {
         "prediction": list[list[float]],
@@ -130,7 +130,9 @@ def make_prediction(model, image_bytes, interpolator, masks=[]) -> dict:
     # Predict and interpolate
     with torch.no_grad():
         outputs, _ = model(inputs)
-    density_map = interpolator(outputs[0, 0].cpu().numpy().tolist(), masks)
+    density_map = outputs[0, 0].cpu().numpy().tolist()
+    if interpolator != None:
+        density_map = interpolator(density_map, masks)
 
     # Count
     predicted_count = 0

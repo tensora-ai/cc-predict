@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 # ------------------------------------------------------------------------------
 class Mask:
-    def __init__(self, name: str, polygon: Polygon, interpolate: bool = True):
+    def __init__(self, name: str, polygon: Polygon, interpolate: bool):
         if not isinstance(name, str):
             raise ValueError("name must be a string")
 

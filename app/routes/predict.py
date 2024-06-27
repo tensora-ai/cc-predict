@@ -22,7 +22,7 @@ def predict_endpoint_implementation(
     image_bytes: bytes,
     model,
     cosmosdb_client,
-    interpolator,
+    interpolators,
     masks,
     gridded_indices,
 ) -> PredictReturnParams:
@@ -39,11 +39,12 @@ def predict_endpoint_implementation(
         pred_args = {
             "model": model,
             "image_bytes": image_bytes,
-            "interpolator": interpolator,
         }
 
         if camera_pos in masks.keys():
             pred_args["masks"] = masks[camera_pos]
+        if camera_pos in interpolators.keys():
+            pred_args["interpolator"] = interpolators[camera_pos]
 
         # Start prediction
         prediction_results = make_prediction(**pred_args)

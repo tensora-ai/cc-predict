@@ -7,12 +7,7 @@ from fastapi.security.api_key import APIKeyHeader
 
 from app.models.models import PredictReturnParams
 
-from app.utils import (
-    SIDWInterpolator,
-    create_cosmos_db_client,
-    initialize_model,
-    process_project_metadata,
-)
+from app.utils import initialize_model, process_project_metadata
 
 from app.routes.predict import predict_endpoint_implementation
 
@@ -34,16 +29,12 @@ def validate_api_key(api_key: str = Security(api_key_header)):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app_resources["model"] = initialize_model()
-    app_resources["cosmosdb"] = create_cosmos_db_client("predictions")
-    app_resources["interpolator"] = SIDWInterpolator(
-        radius=int(os.environ["INTERPOLATION_RADIUS"]),
-        p=float(os.environ["INTERPOLATION_P"]),
-        interpolation_threshold=float(os.environ["INTERPOLATION_THRESHOLD"]),
-    )
 
-    app_resources["masks"], app_resources["gridded_indices"] = (
-        process_project_metadata()
-    )
+    (
+        app_resources["masks"],
+        app_resources["interpolators"],
+        app_resources["gridded_indices"],
+    ) = process_project_metadata()
 
     yield
     app_resources.clear()
@@ -96,7 +87,15 @@ async def predict_endpoint(
         image_bytes=await request.body(),
         model=app_resources["model"],
         cosmosdb_client=app_resources["cosmosdb"],
-        interpolator=app_resources["interpolator"],
+        interpolators=app_resources["interpolators"][project],
         masks=app_resources["masks"][project],
         gridded_indices=app_resources["gridded_indices"][project],
     )
+
+
+# ------------------------------------------------------------------------------
+# Check 'projects' container format endpoint
+# ------------------------------------------------------------------------------
+# @app.get("/check-projects")
+# def check_projects():
+# """An endpoint that checks if all entries in the 'projects' CosmosDB container have the correct format."""
