@@ -7,9 +7,14 @@ from fastapi.security.api_key import APIKeyHeader
 
 from app.models.models import PredictReturnParams
 
-from app.utils import initialize_model, process_project_metadata
+from app.utils import (
+    initialize_model,
+    process_project_metadata,
+    create_cosmos_db_client,
+)
 
 from app.routes.predict import predict_endpoint_implementation
+from app.routes.check_database import check_projects_implementation
 
 load_dotenv()
 
@@ -29,6 +34,7 @@ def validate_api_key(api_key: str = Security(api_key_header)):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app_resources["model"] = initialize_model()
+    app_resources["cosmosdb"] = create_cosmos_db_client("predictions")
 
     (
         app_resources["masks"],
@@ -96,6 +102,7 @@ async def predict_endpoint(
 # ------------------------------------------------------------------------------
 # Check 'projects' container format endpoint
 # ------------------------------------------------------------------------------
-# @app.get("/check-projects")
-# def check_projects():
-# """An endpoint that checks if all entries in the 'projects' CosmosDB container have the correct format."""
+@app.get("/check-projects")
+def check_projects() -> dict:
+    """An endpoint that checks if all entries in the 'projects' CosmosDB container have the correct format."""
+    return check_projects_implementation()

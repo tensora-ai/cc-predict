@@ -6,6 +6,7 @@ from app.utils.perspective.transformed_density_helper_functions import (
 )
 
 
+# ------------------------------------------------------------------------------
 def process_project_metadata() -> tuple[dict, dict]:
     """Creates masks and gridded indices for all projects defined in the corresponding CosmosDB container."""
     projects_client = create_cosmos_db_client("projects")
@@ -21,6 +22,6 @@ def process_project_metadata() -> tuple[dict, dict]:
         interpolators[p["id"]] = create_interpolators(p["cameras"])
         gridded_indices[p["id"]] = calculate_gridded_indices(p["cameras"])
 
-    print(interpolators)
+    print(masks)
 
     return masks, interpolators, gridded_indices

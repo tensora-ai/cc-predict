@@ -57,16 +57,6 @@ def create_masks(cameras: dict) -> dict[str, list[Mask]]:
         for position in cameras[camera]["position_settings"].keys():
             width, height = cameras[camera]["resolution"]
 
-            # Sanity check of input edge values
-            for entry in cameras[camera]["position_settings"][position][
-                "area_metadata"
-            ]:
-                for edge in entry["edges"]:
-                    if edge[0] > width or edge[1] > height:
-                        raise ValueError(
-                            f"Mask edge values exceed image dimensions. Camera ID: {camera_id}; position: {position} area: {entry['area']}"
-                        )
-
             # Determine scaling factor for mask edges
             downscale_factor = 0.125  # vgg19 downscales input by a factor of 8
             if width > max_width or height > max_height:
@@ -77,7 +67,7 @@ def create_masks(cameras: dict) -> dict[str, list[Mask]]:
             # Scale edges and convert to Polygon
             result[f"{camera}_{position}"] = [
                 Mask(
-                    name=area_metadata["name"],
+                    name=area,
                     interpolate=area_metadata["interpolate"],
                     polygon=Polygon(
                         [
@@ -89,9 +79,9 @@ def create_masks(cameras: dict) -> dict[str, list[Mask]]:
                         ]
                     ),
                 )
-                for area_metadata in cameras[camera]["position_settings"][
+                for area, area_metadata in cameras[camera]["position_settings"][
                     position
-                ]["area_metadata"]
+                ]["area_metadata"].items()
             ]
 
     return result
