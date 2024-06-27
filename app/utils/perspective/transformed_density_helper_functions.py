@@ -6,26 +6,24 @@ from app.utils.predict.predict_helper_functions import max_width, max_height
 
 
 # ------------------------------------------------------------------------------
-def calculate_gridded_indices() -> (
-    dict[str, dict[tuple[float, float], list[int]]]
-):
+def calculate_gridded_indices(
+    camera_data,
+) -> dict[str, dict[tuple[float, float], list[int]]]:
     """
     For every camera and position, this function calculates the indices of the transformed density grid that correspond to the real world coordinates of the grid points. The result is a dictionary with the camera and position as keys and a dictionary with real world 1m x 1m grid centers as keys and the corresponding indices as values.
     """
     result = {}
 
-    with open("camera_coordinates.json", "r") as file:
-        cam_coords = json.loads(file.read())
+    for camera_id, data in camera_data.items():
+        half_sensor_width = 0.5 * data["sensor_size"][0]
+        half_sensor_height = 0.5 * data["sensor_size"][1]
+        cam_coordinates = data["coordinates_3D"]
 
-    for camera_id in cam_coords.keys():
-        for position, camera_data in cam_coords[camera_id].items():
+        for position, settings in data["position_settings"].items():
             # Calculate pixels coordinates in camera plane
             # NOTE: Here we assume that the predicted density has the dimensions
             #       (max_width/8, max_height/8), i.e. the input is not smaller
             #       than (max_width, max_height).
-            half_sensor_width = 0.5 * camera_data["sensor_size"][0]
-            half_sensor_height = 0.5 * camera_data["sensor_size"][1]
-
             x_coords_cam = np.linspace(
                 -half_sensor_width, half_sensor_width, int(max_width / 8)
             )
@@ -37,9 +35,9 @@ def calculate_gridded_indices() -> (
 
             # Calculate real world coordinates
             transformer = PerspectiveTransformer(
-                focal_length=camera_data["focal_length"],
-                cam_position=camera_data["position"],
-                cam_center=camera_data["center_ground_plane"],
+                focal_length=settings["focal_length"],
+                cam_position=cam_coordinates,
+                cam_center=settings["center_ground_plane"],
             )
             real_world_coords = transformer.transform_to_ground_plane(
                 camera_plane_coords

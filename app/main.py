@@ -7,14 +7,11 @@ from fastapi.security.api_key import APIKeyHeader
 
 from app.models.models import PredictReturnParams
 
-from app.utils.database_helper_functions import create_cosmos_db_client
-from app.utils.predict.predict_helper_functions import (
+from app.utils import (
+    SIDWInterpolator,
+    create_cosmos_db_client,
     initialize_model,
-    create_masks,
-)
-from app.utils.predict.selective_idw_interpolator import SIDWInterpolator
-from app.utils.perspective.transformed_density_helper_functions import (
-    calculate_gridded_indices,
+    process_project_metadata,
 )
 
 from app.routes.predict import predict_endpoint_implementation
@@ -44,8 +41,9 @@ async def lifespan(app: FastAPI):
         interpolation_threshold=float(os.environ["INTERPOLATION_THRESHOLD"]),
     )
 
-    app_resources["masks"] = create_masks()
-    app_resources["gridded_indices"] = calculate_gridded_indices()
+    app_resources["masks"], app_resources["gridded_indices"] = (
+        process_project_metadata()
+    )
 
     yield
     app_resources.clear()
@@ -99,6 +97,6 @@ async def predict_endpoint(
         model=app_resources["model"],
         cosmosdb_client=app_resources["cosmosdb"],
         interpolator=app_resources["interpolator"],
-        masks=app_resources["masks"],
-        gridded_indices=app_resources["gridded_indices"],
+        masks=app_resources["masks"][project],
+        gridded_indices=app_resources["gridded_indices"][project],
     )

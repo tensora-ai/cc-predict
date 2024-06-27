@@ -1,8 +1,6 @@
 import torch
 import io
-import os
 import logging
-import json
 from PIL import Image
 from shapely.geometry import Point, Polygon
 from torchvision.transforms import transforms
@@ -52,28 +50,21 @@ def resize_if_necessary(image):
 # ------------------------------------------------------------------------------
 # Helper functions
 # ------------------------------------------------------------------------------
-def create_masks():
+def create_masks(cameras):
     """Reads in the pixel valued edges of the mask polygon and turn them into masks for density maps. Returns a dictionary of density map masks with camera ids + positions as keys."""
-    if not os.path.exists("masks.json"):
-        return {}
-
-    with open("masks.json", "r") as file:
-        masks_file = json.loads(file.read())
-
     result = {}
-    for camera_id in masks_file.keys():
-        for position in masks_file[camera_id].keys():
-            width, height = masks_file[camera_id][position]["image_dimensions"]
+    for camera_id in cameras.keys():
+        for position in cameras[camera_id]["position_settings"].keys():
+            width, height = cameras[camera_id]["resolution"]
 
             # Sanity check of input edge values
-            for entry in masks_file[camera_id][position]["masks"]:
-                for i in range(len(entry["edges"])):
-                    if (
-                        entry["edges"][i][0] > width
-                        or entry["edges"][i][1] > height
-                    ):
+            for entry in cameras[camera_id]["position_settings"][position][
+                "area_metadata"
+            ]:
+                for edge in entry["edges"]:
+                    if edge[0] > width or edge[1] > height:
                         raise ValueError(
-                            f"Mask edge values exceed image dimensions. Camera ID: {camera_id}; Mask name: {entry['name']}"
+                            f"Mask edge values exceed image dimensions. Camera ID: {camera_id}; position: {position} area: {entry['area']}"
                         )
 
             # Determine scaling factor for mask edges
@@ -86,19 +77,21 @@ def create_masks():
             # Scale edges and convert to Polygon
             result[f"{camera_id}_{position}"] = [
                 Mask(
-                    name=mask["name"],
-                    interpolate=mask["interpolate"],
+                    name=area_metadata["area"],
+                    interpolate=area_metadata["interpolate"],
                     polygon=Polygon(
                         [
                             (
                                 round(downscale_factor * edge[0]),
                                 round(downscale_factor * edge[1]),
                             )
-                            for edge in mask["edges"]
+                            for edge in area_metadata["edges"]
                         ]
                     ),
                 )
-                for mask in masks_file[camera_id][position]["masks"]
+                for area_metadata in cameras[camera_id]["position_settings"][
+                    position
+                ]["area_metadata"]
             ]
 
     return result
