@@ -22,6 +22,4 @@ def process_project_metadata() -> tuple[dict, dict]:
         interpolators[p["id"]] = create_interpolators(p["cameras"])
         gridded_indices[p["id"]] = calculate_gridded_indices(p["cameras"])
 
-    print(masks)
-
     return masks, interpolators, gridded_indices

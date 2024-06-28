@@ -1,12 +1,20 @@
+from fastapi import HTTPException
+
 from app.utils.database_helper_functions import create_cosmos_db_client
 
 
 # ------------------------------------------------------------------------------
 def check_projects_implementation() -> dict:
-    projects_client = create_cosmos_db_client("projects")
-    projects = projects_client.query_items(
-        query="SELECT * FROM c", enable_cross_partition_query=True
-    )
+    try:
+        projects_client = create_cosmos_db_client("projects")
+        projects = projects_client.query_items(
+            query="SELECT * FROM c", enable_cross_partition_query=True
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"An error occurred while retrieving projects from CosmosDB: {e}.",
+        )
 
     flaws = {}
     for p in projects:
