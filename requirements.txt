@@ -1,3 +1,5 @@
+uvicorn
+gunicorn
 python-dotenv
 fastapi
 azure-storage-blob
