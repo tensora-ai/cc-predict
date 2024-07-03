@@ -1,5 +1,4 @@
 import torch.nn as nn
-from torch.nn import functional as F
 
 
 # ------------------------------------------------------------------------------
@@ -22,7 +21,7 @@ class DMCount(nn.Module):
     def forward(self, x):
         # Predict density map mu
         x = self.features(x)
-        x = F.upsample_bilinear(x, scale_factor=2)
+        x = nn.functional.upsample_bilinear(x, scale_factor=2)
         x = self.reg_layer(x)
         mu = self.density_layer(x)
 

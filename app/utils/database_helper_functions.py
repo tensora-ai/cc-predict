@@ -73,7 +73,6 @@ def prepare_heatmap(prediction: list[list[float]]):
 
 # ------------------------------------------------------------------------------
 def save_downsized_image_to_blob(image_bytes, image_name) -> None:
-
     image = Image.open(io.BytesIO(image_bytes))
 
     # Resize the image to 720p

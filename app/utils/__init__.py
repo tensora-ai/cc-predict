@@ -1,4 +1,3 @@
-from app.utils.predict.selective_idw_interpolator import SIDWInterpolator
-from app.utils.predict.predict_helper_functions import initialize_model
+from app.utils.model_prediction.make_prediction import initialize_model
 from app.utils.database_helper_functions import create_cosmos_db_client
-from app.utils.process_project_metadata import process_project_metadata
+from app.utils.startup.process_project_metadata import process_project_metadata

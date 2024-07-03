@@ -1,7 +1,9 @@
 from app.utils.database_helper_functions import create_cosmos_db_client
-from app.utils.predict.predict_helper_functions import create_masks
-from app.utils.predict.selective_idw_interpolator import create_interpolators
-from app.utils.perspective.transformed_density_helper_functions import (
+from app.utils.startup.create_masks import create_masks
+from app.utils.startup.selective_idw_interpolator import (
+    create_interpolators,
+)
+from app.utils.startup.perspective.transformed_density_helper_functions import (
     calculate_gridded_indices,
 )
 

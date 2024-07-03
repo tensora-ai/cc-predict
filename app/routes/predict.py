@@ -3,7 +3,7 @@ from fastapi import HTTPException
 
 from app.models.models import PredictReturnParams
 
-from app.utils.predict.predict_helper_functions import make_prediction
+from app.utils.model_prediction.make_prediction import make_prediction
 from app.utils.database_helper_functions import (
     save_image_to_blob,
     save_downsized_image_to_blob,
@@ -55,7 +55,8 @@ def predict_endpoint_implementation(
         )
 
     if save_predictions:
-        # --- Save raw density, original image, heatmap, and, if present, transformed heatmap to blob storage ---
+        # --- Save raw density, original image, heatmap, and, if present,
+        # transformed heatmap to blob storage ---
         try:
             save_density_to_blob(
                 density=prediction_results["prediction"],
@@ -81,14 +82,13 @@ def predict_endpoint_implementation(
                     gridded_indices=gridded_indices[camera_pos],
                     image_name=prediction_id,
                 )
-            i = 1
         except Exception as e:
             raise HTTPException(
                 status_code=500,
                 detail=f"Error while saving to blob storage: {e}",
             )
 
-    # --- Save prediction to CosmosDB ---
+    # --- Save prediction results to CosmosDB ---
     prediction = PredictReturnParams(
         id=prediction_id,
         project=project,
@@ -97,7 +97,6 @@ def predict_endpoint_implementation(
         timestamp=now.strftime("%Y-%m-%dT%H:%M:%SZ"),
         counts=prediction_results["counts"],
     )
-    cosmosdb_client.upsert_item(body=prediction.to_cosmosdb_entry())
     if save_predictions:
         try:
             cosmosdb_client.upsert_item(body=prediction.to_cosmosdb_entry())
