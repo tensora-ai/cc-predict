@@ -1,6 +1,5 @@
 import torch
 import io
-import logging
 from PIL import Image
 from shapely.geometry import Point
 from torchvision.transforms import transforms
@@ -48,7 +47,6 @@ def initialize_model():
         torch.load(io.BytesIO(download_model()), map_location="cpu")
     )
     model.eval()
-    logging.info("Model initialized.")
     return model
 
 
@@ -66,7 +64,7 @@ def make_prediction(model, image_bytes, interpolator=None, masks=[]) -> dict:
     }."""
     # Preprocess given image
     img = resize(Image.open(io.BytesIO(image_bytes)))
-    inputs = (img_transform(img).unsqueeze(0)).to(device)
+    inputs = img_transform(img).unsqueeze(0).to(device)
 
     # Predict and interpolate
     with torch.no_grad():
