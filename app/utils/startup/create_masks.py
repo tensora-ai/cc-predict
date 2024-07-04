@@ -58,24 +58,4 @@ def create_masks(cameras: dict) -> dict[str, list[Mask]]:
                 ]["area_metadata"].items()
             ]
 
-            print(
-                [
-                    (
-                        int(
-                            vgg19_factor * (scaling_factor * edge[0] + w_offset)
-                        ),
-                        int(
-                            vgg19_factor * (scaling_factor * edge[1] + h_offset)
-                        ),
-                    )
-                    for edge in [
-                        [3006, 1366],
-                        [2600, 116],
-                        [1606, 76],
-                        [838, 1015],
-                        [1285, 1366],
-                    ]
-                ]
-            )
-
     return result

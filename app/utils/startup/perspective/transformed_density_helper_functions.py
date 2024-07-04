@@ -66,9 +66,6 @@ def calculate_gridded_indices(
                         & (y_coords_real_world >= y)
                         & (y_coords_real_world < y + step_size_rw)
                     )
-                    bad_inds = np.array(indices)[np.array(indices) >= 14400]
-                    if bad_inds:
-                        print(bad_inds)
 
                     if len(indices) > 0:
                         indices_dict[
