@@ -8,6 +8,8 @@ from app.utils.model_prediction.make_prediction import fixed_width, fixed_height
 # ------------------------------------------------------------------------------
 def create_masks(cameras: dict) -> dict[str, list[Mask]]:
     """Reads in the pixel valued edges of the mask polygon and turn them into masks for density maps. Returns a dictionary of density map masks with camera ids + positions as keys."""
+    vgg19_factor = 0.125  # vgg19 downscales input images by a factor of 8
+
     result = {}
     for camera in cameras.keys():
         for position in cameras[camera]["position_settings"].keys():
@@ -29,8 +31,6 @@ def create_masks(cameras: dict) -> dict[str, list[Mask]]:
 
             w_offset = 0.5 * (fixed_width - scaling_factor * width)
             h_offset = 0.5 * (fixed_height - scaling_factor * height)
-
-            vgg19_factor = 0.125  # vgg19 downscales input by a factor of 8
 
             # Scale edges and convert to Polygon
             result[f"{camera}_{position}"] = [

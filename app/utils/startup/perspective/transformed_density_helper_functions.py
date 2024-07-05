@@ -11,32 +11,32 @@ def calculate_gridded_indices(
     camera_data,
 ) -> dict[str, dict[tuple[float, float], list[int]]]:
     """
-    For every camera and position, this function calculates the indices of the transformed density grid that correspond to the real world coordinates of the grid points. The result is a dictionary with the camera and position as keys and a dictionary with real world 0.5m x 0.5m grid centers as keys and the corresponding indices as values.
+    For every camera and position, this function calculates the indices of the transformed density grid that correspond to the real world coordinates of the grid points. I returns dictionaries with real world grid cell centers as keys and the corresponding indices as values.
     """
-    result = {}
     step_size_rw = 0.5  # in m
+    vgg19_factor = 0.125  # vgg19 downscales input images by a factor of 8
 
+    result = {}
     for camera_id, data in camera_data.items():
         half_sensor_width = 0.5 * data["sensor_size"][0]
         half_sensor_height = 0.5 * data["sensor_size"][1]
 
         for position, settings in data["position_settings"].items():
-            # Calculate pixels coordinates in camera plane
-            # NOTE: Here we assume that the predicted density has the dimensions (fixed_width/8, fixed_height/8).
+            # Calculate pixel coordinates in camera plane
             x_coords_cam = np.linspace(
                 -half_sensor_width,
                 half_sensor_width,
-                round(0.125 * fixed_width),
+                round(vgg19_factor * fixed_width),
             )
             y_coords_cam = np.linspace(
                 half_sensor_height,
                 -half_sensor_height,
-                round(0.125 * fixed_height),
+                round(vgg19_factor * fixed_height),
             )
             xx_cam, yy_cam = np.meshgrid(x_coords_cam, y_coords_cam)
             camera_plane_coords = list(zip(xx_cam.flatten(), yy_cam.flatten()))
 
-            # Calculate real world coordinates
+            # Calculate real world coordinates of every pixel
             transformer = PerspectiveTransformer(
                 focal_length=settings["focal_length"],
                 cam_position=data["coordinates_3D"],
@@ -55,8 +55,8 @@ def calculate_gridded_indices(
             y_min_rw = round(np.floor(y_coords_real_world.min()))
             y_max_rw = round(np.ceil(y_coords_real_world.max()))
 
-            # For every 0.5m x 0.5m grid cell in the real world, find the indices of
-            # original density values that are inside the cell
+            # For every step_size_rw x step_size_rw grid cell in the real world,
+            # find the indices of original density pixels that are inside the cell
             indices_dict = {}
             for x in np.arange(x_min_rw, x_max_rw, step_size_rw):
                 for y in np.arange(y_min_rw, y_max_rw, step_size_rw):
