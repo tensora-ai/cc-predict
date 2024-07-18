@@ -11,7 +11,7 @@ def calculate_gridded_indices(
     camera_data,
 ) -> dict[str, dict[tuple[float, float], list[int]]]:
     """
-    For every camera and position, this function calculates the indices of the transformed density grid that correspond to the real world coordinates of the grid points. I returns dictionaries with real world grid cell centers as keys and the corresponding indices as values.
+    For every camera and position, this function calculates the indices of the transformed and flattened density grid that correspond to the real world coordinates of the grid points. I returns dictionaries with real world grid cell centers as keys and the corresponding indices as values.
     """
     step_size_rw = 0.5  # in m
     vgg19_factor = 0.125  # vgg19 downscales input images by a factor of 8
@@ -22,7 +22,11 @@ def calculate_gridded_indices(
         half_sensor_height = 0.5 * data["sensor_size"][1]
 
         for position, settings in data["position_settings"].items():
-            # Calculate pixel coordinates in camera plane
+            # Calculate pixel coordinates in camera plane.
+            # This logic only works if the density has the dimensions
+            # (max_width/8, max_height/8), i.e. the input image is not smaller
+            # than (max_width, max_height). This is ensured in the implementation
+            # of resize() in app.utils.model_prediction.make_prediction.
             x_coords_cam = np.linspace(
                 -half_sensor_width,
                 half_sensor_width,

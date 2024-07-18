@@ -112,14 +112,10 @@ def save_transformed_density_to_blob(
 ) -> None:
     flattened_density = np.array(density).flatten()
 
-    transformed_density = []
-    for x, y in gridded_indices.keys():
-        # NOTE: This logic only works if the density has the dimensions
-        #       (max_width/8, max_height/8), i.e. the input image is not smaller
-        #       than (max_width, max_height).
-        transformed_density.append(
-            (x, y, np.sum(flattened_density[gridded_indices[(x, y)]]))
-        )
+    transformed_density = [
+        (x, y, np.sum(flattened_density[gridded_indices[(x, y)]]))
+        for x, y in gridded_indices.keys()
+    ]
 
     save_json_to_blob(
         transformed_density, f"{image_name}_transformed_density.json"
