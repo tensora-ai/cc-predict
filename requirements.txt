@@ -1,13 +1,13 @@
-uvicorn
-gunicorn
-python-dotenv
-fastapi
-azure-storage-blob
-azure-cosmos
-numpy<2
+uvicorn==0.30.1
+gunicorn==22.0.0
+python-dotenv==1.0.1
+fastapi==0.111.1
+azure-storage-blob==12.20.0
+azure-cosmos==4.7.0
+numpy==1.26.4
 torch==1.11.0 -f https://download.pytorch.org/whl/cpu
 torchvision==0.12.0 -f https://download.pytorch.org/whl/cpu
-Pillow
-shapely
-joblib
-opencv-python-headless
+pillow==10.4.0
+shapely==2.0.5
+joblib==1.4.2
+opencv-python-headless==4.10.0.84
