@@ -66,7 +66,7 @@ def prepare_heatmap(prediction: list[list[float]]):
     heatmap = (heatmap / upper_bound * 255).astype(np.uint8)
 
     heatmap = cv2.applyColorMap(
-        cv2.resize(heatmap, (1280, 562)), cv2.COLORMAP_JET
+        cv2.resize(heatmap, (960, 540)), cv2.COLORMAP_JET
     )
     return cv2.imencode(".jpg", heatmap)[1].tobytes()
 
@@ -75,13 +75,13 @@ def prepare_heatmap(prediction: list[list[float]]):
 def save_downsized_image_to_blob(image_bytes, image_name) -> None:
     image = Image.open(io.BytesIO(image_bytes))
 
-    # Resize the image to 720p
+    # Resize the image to 540p
     width, height = image.size
     if width > height:
-        new_width = 1280
+        new_width = 960
         new_height = int((new_width / width) * height)
     else:
-        new_height = 720
+        new_height = 540
         new_width = int((new_height / height) * width)
     resized_image = image.resize((new_width, new_height))
 
