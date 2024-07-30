@@ -20,7 +20,7 @@ def predict_endpoint_implementation(
     project: str,
     save_predictions: bool,
     image_bytes: bytes,
-    model,
+    models,
     cosmosdb_client,
     interpolators,
     masks,
@@ -37,7 +37,7 @@ def predict_endpoint_implementation(
     try:
         # Set up relevant arguments
         pred_args = {
-            "model": model,
+            "models": models,
             "image_bytes": image_bytes,
         }
 

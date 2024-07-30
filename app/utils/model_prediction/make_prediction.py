@@ -1,5 +1,7 @@
 import torch
 import io
+import os
+import numpy as np
 from PIL import Image
 from shapely.geometry import Point
 from torchvision.transforms import transforms
@@ -25,11 +27,19 @@ img_transform = transforms.Compose(
 
 
 # ------------------------------------------------------------------------------
+def average_luminance(image):
+    """Calculcates the average luminance as perceived by humans normalized to 1."""
+    luminance_array = np.dot(np.array(image), np.array([0.299, 0.587, 0.114]))
+
+    return np.mean(luminance_array) / 255
+
+
+# ------------------------------------------------------------------------------
 def resize(image: Image):
     """Resizes the given image to the dimensions defined internally with a black background if it does not have the same aspect ratio. Returns the resized image."""
     image.thumbnail((fixed_width, fixed_height), Image.LANCZOS)
 
-    # Fit image into black background of size fixed_width x fixed_height
+    # Fit image into black background of size fixed_width * fixed_height
     ar_image = Image.new("RGB", (fixed_width, fixed_height))
     ar_image.paste(
         image,
@@ -39,19 +49,19 @@ def resize(image: Image):
 
 
 # ------------------------------------------------------------------------------
-def initialize_model():
+def initialize_model(model_name: str):
     """Initializes the model and loads the weights from the blob storage. Returns the initialized model."""
     model = DMCount()
     model.to(device)
     model.load_state_dict(
-        torch.load(io.BytesIO(download_model()), map_location="cpu")
+        torch.load(io.BytesIO(download_model(model_name)), map_location="cpu")
     )
     model.eval()
     return model
 
 
 # ------------------------------------------------------------------------------
-def make_prediction(model, image_bytes, interpolator=None, masks=[]) -> dict:
+def make_prediction(models, image_bytes, interpolator=None, masks=[]) -> dict:
     """Takes a pytorch model, a binary image, an interpolator and potential masks as input. Returns a dict with the predicted density map, the total count of people in the image and (if present) the counts of all masks. The returned dict has the format
     {
         "prediction": list[list[float]],
@@ -64,11 +74,22 @@ def make_prediction(model, image_bytes, interpolator=None, masks=[]) -> dict:
     }."""
     # Preprocess given image
     img = resize(Image.open(io.BytesIO(image_bytes)))
+    print("Brightness:", average_luminance(img))
     inputs = img_transform(img).unsqueeze(0).to(device)
 
     # Predict and interpolate
     with torch.no_grad():
-        outputs, _ = model(inputs)
+        outputs, _ = (
+            models[
+                (
+                    "day"
+                    if average_luminance(img)
+                    > float(os.environ["BRIGHTNESS_THRESHOLD"])
+                    else "night"
+                )
+            ]
+        )(inputs)
+
     density_map = outputs[0, 0].cpu().numpy().tolist()
     if interpolator != None:
         density_map = interpolator(density_map, masks)

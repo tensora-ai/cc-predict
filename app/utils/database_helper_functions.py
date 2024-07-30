@@ -31,10 +31,10 @@ def save_json_to_blob(json_data, file_name):
 # ------------------------------------------------------------------------------
 # Helper functions
 # ------------------------------------------------------------------------------
-def download_model():
+def download_model(model_name: str):
     blob_client = create_blob_client(
         blob_name="models",
-        file_name=f"{os.environ['MODEL_NAME']}.pth",
+        file_name=f"{model_name}.pth",
     )
     return blob_client.download_blob().readall()
 
