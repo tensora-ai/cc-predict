@@ -24,7 +24,7 @@ load_dotenv()
 app_resources = {}
 
 
-def get_api_key(key: str):
+def check_api_key(key: str):
     if not key or key != os.environ["API_KEY"]:
         raise HTTPException(status_code=403, detail="Invalid API Key")
     return key
@@ -57,7 +57,7 @@ app = FastAPI(
 # Health check endpoint
 # ------------------------------------------------------------------------------
 @app.get("/health-check")
-def health_check(key: str = Depends(get_api_key)):
+def health_check(key: str = Depends(check_api_key)):
     """Simple healthcheck that returns 200 OK."""
     return {"status": "SUCCESS"}
 
@@ -71,8 +71,8 @@ async def predict_endpoint(
     camera: str,
     project: str,
     position: str = "standard",
-    save_predictions: str | int = 1,
-    key: str = Depends(get_api_key),
+    save_predictions: str = "true",
+    key: str = Depends(check_api_key),
 ) -> PredictReturnParams:
     """..."""
     if save_predictions in ["true", "1"]:
@@ -103,6 +103,6 @@ async def predict_endpoint(
 # Check 'projects' container format endpoint
 # ------------------------------------------------------------------------------
 @app.get("/check-projects")
-def check_projects(key: str = Depends(get_api_key)) -> dict:
+def check_projects(key: str = Depends(check_api_key)) -> dict:
     """An endpoint that checks if all entries in the 'projects' CosmosDB container have the correct format."""
     return check_projects_implementation()
