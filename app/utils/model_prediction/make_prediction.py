@@ -12,7 +12,7 @@ from app.utils.database_helper_functions import download_model
 # ------------------------------------------------------------------------------
 # Helper definitions and functions
 # ------------------------------------------------------------------------------
-fixed_width, fixed_height = 1920, 1080
+fixed_width, fixed_height = 1600, 900
 device = torch.device("cpu")
 
 # ------------------------------------------------------------------------------
