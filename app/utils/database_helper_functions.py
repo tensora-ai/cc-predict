@@ -113,7 +113,22 @@ def save_transformed_density_to_blob(
     flattened_density = np.array(density).flatten()
 
     transformed_density = [
-        (x, y, np.sum(flattened_density[gridded_indices[(x, y)]]))
+        (
+            x,
+            y,
+            np.sum(
+                flattened_density[
+                    np.array(
+                        [
+                            i
+                            for i in gridded_indices[(x, y)][0]
+                            if i < flattened_density.shape[0]
+                        ],
+                        dtype=np.int64,
+                    )
+                ]
+            ),
+        )
         for x, y in gridded_indices.keys()
     ]
 
