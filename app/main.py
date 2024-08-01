@@ -2,8 +2,7 @@ import os
 
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Depends, Header, HTTPException, Request
-from fastapi.security.api_key import APIKeyHeader
+from fastapi import FastAPI, Depends, HTTPException, Request
 
 from app.models.models import PredictReturnParams
 
@@ -33,8 +32,8 @@ def check_api_key(key: str):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app_resources["models"] = {
-        "day": initialize_model(os.environ["DAY_MODEL"]),
-        "night": initialize_model(os.environ["NIGHT_MODEL"]),
+        "standard": initialize_model(os.environ["STANDARD_MODEL"]),
+        "lightshow": initialize_model(os.environ["LIGHTSHOW_MODEL"]),
     }
     app_resources["cosmosdb"] = create_cosmos_db_client("predictions")
 
@@ -42,6 +41,7 @@ async def lifespan(app: FastAPI):
         app_resources["masks"],
         app_resources["interpolators"],
         app_resources["gridded_indices"],
+        app_resources["model_schedules"],
     ) = process_project_metadata()
 
     yield
@@ -74,10 +74,12 @@ async def predict_endpoint(
     save_predictions: str = "true",
     key: str = Depends(check_api_key),
 ) -> PredictReturnParams:
-    """..."""
-    if save_predictions in ["true", "1"]:
+    """Returns a prediction for the image given in the request body.
+    If specified, saves the image, returned predictions and heatmaps to the cloud.
+    """
+    if save_predictions.lower() in ["true", "1"]:
         save_predictions_bool = True
-    elif save_predictions in ["false", "0"]:
+    elif save_predictions.lower() in ["false", "0"]:
         save_predictions_bool = False
     else:
         raise HTTPException(
@@ -96,6 +98,7 @@ async def predict_endpoint(
         interpolators=app_resources["interpolators"][project],
         masks=app_resources["masks"][project],
         gridded_indices=app_resources["gridded_indices"][project],
+        model_schedules=app_resources["model_schedules"][project],
     )
 
 

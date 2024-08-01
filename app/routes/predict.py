@@ -25,6 +25,7 @@ def predict_endpoint_implementation(
     interpolators,
     masks,
     gridded_indices,
+    model_schedules,
 ) -> PredictReturnParams:
     # --- Preparatory definitions ---
     now = datetime.now()
@@ -37,7 +38,9 @@ def predict_endpoint_implementation(
     try:
         # Set up relevant arguments
         pred_args = {
-            "models": models,
+            "model": models[
+                model_schedules[camera].determine_model(now.time())
+            ],
             "image_bytes": image_bytes,
         }
 

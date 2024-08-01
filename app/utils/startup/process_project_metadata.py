@@ -6,6 +6,7 @@ from app.utils.startup.selective_idw_interpolator import (
 from app.utils.startup.perspective.transformed_density_helper_functions import (
     calculate_gridded_indices,
 )
+from app.models.models import ModelSchedule
 
 
 # ------------------------------------------------------------------------------
@@ -19,9 +20,17 @@ def process_project_metadata() -> tuple[dict, dict]:
     masks = {}
     interpolators = {}
     gridded_indices = {}
+    model_schedules = {}
     for p in projects:
         masks[p["id"]] = create_masks(p["cameras"])
+
         interpolators[p["id"]] = create_interpolators(p["cameras"])
+
         gridded_indices[p["id"]] = calculate_gridded_indices(p["cameras"])
 
-    return masks, interpolators, gridded_indices
+        model_schedules[p["id"]] = {
+            cam_id: ModelSchedule.from_cosmosdb_entry(data["model_schedule"])
+            for cam_id, data in p["cameras"].items()
+        }
+
+    return masks, interpolators, gridded_indices, model_schedules
