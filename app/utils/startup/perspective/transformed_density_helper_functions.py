@@ -13,7 +13,7 @@ def calculate_gridded_indices(
     """
     For every camera and position, this function calculates the indices of the transformed and flattened density grid that correspond to the real world coordinates of the grid points. I returns dictionaries with real world grid cell centers as keys and the corresponding indices as values.
     """
-    step_size_rw = 0.5  # in m
+    step_size_rw = 1  # in m
     vgg19_factor = 0.125  # vgg19 downscales input images by a factor of 8
 
     result = {}
