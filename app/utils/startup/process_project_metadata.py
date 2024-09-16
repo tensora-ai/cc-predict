@@ -31,6 +31,7 @@ def process_project_metadata() -> tuple[dict, dict]:
         model_schedules[p["id"]] = {
             cam_id: ModelSchedule.from_cosmosdb_entry(data["model_schedule"])
             for cam_id, data in p["cameras"].items()
+            if "model_schedule" in data.keys()
         }
 
     return masks, interpolators, gridded_indices, model_schedules

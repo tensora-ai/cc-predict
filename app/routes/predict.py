@@ -38,9 +38,11 @@ def predict_endpoint_implementation(
     try:
         # Set up relevant arguments
         pred_args = {
-            "model": models[
-                model_schedules[camera].determine_model(now.time())
-            ],
+            "model": (
+                models[model_schedules[camera].determine_model(now.time())]
+                if camera in model_schedules.keys()
+                else "standard"
+            ),
             "image_bytes": image_bytes,
         }
 

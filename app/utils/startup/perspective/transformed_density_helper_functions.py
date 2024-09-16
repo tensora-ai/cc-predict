@@ -18,6 +18,8 @@ def calculate_gridded_indices(
 
     result = {}
     for camera_id, data in camera_data.items():
+        if not "sensor_size" in data:
+            continue
         half_sensor_width = 0.5 * data["sensor_size"][0]
         half_sensor_height = 0.5 * data["sensor_size"][1]
 
