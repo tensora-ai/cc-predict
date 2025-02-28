@@ -1,0 +1,21 @@
+from fastapi import APIRouter
+from app.api.endpoints import projects, predictions
+
+# Create the main router
+router = APIRouter()
+
+# Include the profiles router
+router.include_router(projects.router, prefix="/projects", tags=["projects"])
+
+
+# Add basic root endpoint
+@router.get("/")
+async def root():
+    return {"message": "Welcome to the Profiles API"}
+
+
+# Add health hcheck endpoint
+@router.get("/health")
+def healthcheck():
+    """Simple healthcheck that returns 200 OK."""
+    return {"status": "SUCCESS"}
