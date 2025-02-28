@@ -11,3 +11,4 @@ pillow==11.1.0
 shapely==2.0.7
 joblib==1.4.2
 opencv-python-headless==4.11.0.86
+pyclean==3.1.0
