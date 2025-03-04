@@ -11,5 +11,5 @@ output "storage_account_name" {
 
 output "app_service_endpoint" {
   description = "The endpoint of the app service hosting the Count Predictions backend"
-  value       = azurerm_linux_web_app.count_predictions.default_site_hostname
+  value       = azurerm_linux_web_app.count_predictions.default_hostname
 }
