@@ -46,7 +46,7 @@ resource "azurerm_linux_web_app" "count_predictions" {
 
     always_on                         = true
     ftps_state                        = "Disabled"
-    health_check_path                 = "/api/v1/"
+    health_check_path                 = "/health-check"
     health_check_eviction_time_in_min = 2
   }
 
