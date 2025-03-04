@@ -67,6 +67,6 @@ jobs:
       - name: Restart Web App
         run: |
           az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID_INTERN_PRD }} -p ${{ secrets.AZURE_CLIENT_SECRET_INTERN_PRD}} --tenant ${{ secrets.AZURE_TENANT_ID_INTERN_PRD }}
-          az webapp restart --name app-count-predictions-intern-prd-backend --resource-group rg-count-intern-prd-apps
+          az webapp restart --name app-count-intern-prd-predictions --resource-group rg-count-intern-prd-apps
 
   
