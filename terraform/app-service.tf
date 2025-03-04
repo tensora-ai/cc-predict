@@ -4,7 +4,7 @@ data "azurerm_container_registry" "count" {
 }
 
 resource "azurerm_service_plan" "count_predictions" {
-  name                = "asp-count-predictions-${var.customer}-${var.environment}"
+  name                = "asp-count-${var.customer}-${var.environment}-predictions"
   resource_group_name = "rg-count-${var.customer}-${var.environment}-apps"
   location            = var.location
 
@@ -19,7 +19,7 @@ resource "azurerm_service_plan" "count_predictions" {
 }
 
 resource "azurerm_linux_web_app" "count_predictions" {
-  name                = "app-count-predictions-${var.customer}-${var.environment}-backend"
+  name                = "app-count-${var.customer}-${var.environment}-predictions"
   resource_group_name = "rg-count-${var.customer}-${var.environment}-apps"
   location            = var.location
   service_plan_id     = azurerm_service_plan.count_predictions.id
