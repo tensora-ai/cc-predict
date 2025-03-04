@@ -41,14 +41,14 @@ def download_model(model_name: str):
 
 # ------------------------------------------------------------------------------
 def create_cosmos_db_client(container_name: str):
-    cosmos_client = CosmosClient(
-        os.environ["COSMOS_DB_ENDPOINT"], os.environ["COSMOS_DB_PRIMARY_KEY"]
-    )
-    database_client = cosmos_client.get_database_client(
-        os.environ["COSMOS_DB_DATABASE_NAME"]
-    )
 
-    return database_client.get_container_client(container_name)
+    # Initialize CosmosDB client
+    client = CosmosClient(url=os.getenv("COSMOS_DB_ENDPOINT"), credential=os.getenv("COSMOS_DB_PRIMARY_KEY"))
+
+    # Get a reference to the database
+    database = client.get_database_client(os.getenv("COSMOS_DB_DATABASE_NAME"))
+
+    return database.get_container_client(container_name)
 
 
 # ------------------------------------------------------------------------------
