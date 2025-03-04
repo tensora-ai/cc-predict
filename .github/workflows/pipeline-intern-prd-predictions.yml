@@ -1,0 +1,72 @@
+name: 'COUNT INTERN PRD Predictions Deployment'
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+env:
+  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID_INTERN_PRD }}
+  ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET_INTERN_PRD }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID_INTERN_PRD }}
+  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID_INTERN_PRD }}
+
+jobs:
+  terraform:
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.9.0
+      
+    - name: Terraform Init
+      working-directory: terraform  
+      run: terraform init --backend-config="environment/intern/prd/backend.conf"
+      
+    - name: Terraform Apply
+      working-directory: terraform  
+      run: terraform apply --var-file="environment/intern/prd/terraform.tfvars" -auto-approve
+
+  docker:
+    name: 'Build and Push Docker Image'
+    runs-on: ubuntu-latest
+    needs: terraform
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Docker Login
+        uses: azure/docker-login@v2
+        with:
+          login-server: ${{ secrets.ACR_LOGIN_SERVER_INTERN_PRD }}
+          username: ${{ secrets.ACR_USERNAME_INTERN_PRD }}
+          password: ${{ secrets.ACR_PASSWORD_INTERN_PRD }}
+
+      - name: Build and Push to ACR
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: ${{ secrets.ACR_LOGIN_SERVER_INTERN_PRD }}/count-intern-prd-predictions:latest
+          file: Dockerfile
+
+      - name: Wait for 1 Minute
+        run: sleep 60
+
+      - name: Restart Web App
+        run: |
+          az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID_INTERN_PRD }} -p ${{ secrets.AZURE_CLIENT_SECRET_INTERN_PRD}} --tenant ${{ secrets.AZURE_TENANT_ID_INTERN_PRD }}
+          az webapp restart --name app-count-predictions-intern-prd-backend --resource-group rg-count-intern-prd-apps
+
+  
