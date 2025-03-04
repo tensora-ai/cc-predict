@@ -30,9 +30,7 @@ def predict_endpoint_implementation(
     # --- Preparatory definitions ---
     now = datetime.now()
     camera_pos = f"{camera}_{position}"
-    prediction_id = (
-        f"{project}-{camera}-{position}-{now.strftime('%Y_%m_%d-%H_%M_%S')}"
-    )
+    prediction_id = f"{project}-{camera}-{position}-{now.strftime('%Y_%m_%d-%H_%M_%S')}"
 
     # --- Make prediction ---
     try:
@@ -72,9 +70,7 @@ def predict_endpoint_implementation(
                 image_name=prediction_id,
             )
 
-            save_image_to_blob(
-                image_bytes=image_bytes, image_name=prediction_id
-            )
+            save_image_to_blob(image_bytes=image_bytes, image_name=prediction_id)
 
             save_downsized_image_to_blob(
                 image_bytes=image_bytes, image_name=prediction_id

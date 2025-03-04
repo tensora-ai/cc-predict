@@ -1,11 +1,10 @@
+# Initialize the blob storage client
 import os
-import json
-import numpy as np
-import cv2
 from azure.storage.blob import BlobServiceClient
-from azure.cosmos import CosmosClient
-from PIL import Image
-import io
+
+blob_storage_client = BlobServiceClient.from_connection_string(
+    os.getenv("BLOB_CONNECTION_STRING")
+)
 
 
 # ------------------------------------------------------------------------------
@@ -40,20 +39,8 @@ def download_model(model_name: str):
 
 
 # ------------------------------------------------------------------------------
-def create_cosmos_db_client(container_name: str):
-    cosmos_client = CosmosClient(
-        os.environ["DB_ENDPOINT"], os.environ["DB_KEY"]
-    )
-    database_client = cosmos_client.get_database_client("tensora-count")
-
-    return database_client.get_container_client(container_name)
-
-
-# ------------------------------------------------------------------------------
 def save_image_to_blob(image_bytes, image_name) -> None:
-    blob_client = create_blob_client(
-        blob_name="images", file_name=f"{image_name}.jpg"
-    )
+    blob_client = create_blob_client(blob_name="images", file_name=f"{image_name}.jpg")
     blob_client.upload_blob(image_bytes)
 
 
@@ -65,9 +52,7 @@ def prepare_heatmap(prediction: list[list[float]]):
     heatmap[heatmap > upper_bound] = upper_bound
     heatmap = (heatmap / upper_bound * 255).astype(np.uint8)
 
-    heatmap = cv2.applyColorMap(
-        cv2.resize(heatmap, (960, 540)), cv2.COLORMAP_JET
-    )
+    heatmap = cv2.applyColorMap(cv2.resize(heatmap, (960, 540)), cv2.COLORMAP_JET)
     return cv2.imencode(".jpg", heatmap)[1].tobytes()
 
 
@@ -132,6 +117,4 @@ def save_transformed_density_to_blob(
         for x, y in gridded_indices.keys()
     ]
 
-    save_json_to_blob(
-        transformed_density, f"{image_name}_transformed_density.json"
-    )
+    save_json_to_blob(transformed_density, f"{image_name}_transformed_density.json")

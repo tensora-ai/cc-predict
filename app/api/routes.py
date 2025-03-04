@@ -1,11 +1,12 @@
 from fastapi import APIRouter
 from app.api.endpoints import projects, predictions
+from app.models.response import HealthCheckResponse
 
 # Create the main router
 router = APIRouter()
 
 # Include the profiles router
-router.include_router(projects.router, prefix="/projects", tags=["projects"])
+# router.include_router(projects.router, prefix="/projects", tags=["projects"])
 
 
 # Add basic root endpoint
@@ -16,6 +17,6 @@ async def root():
 
 # Add health hcheck endpoint
 @router.get("/health")
-def healthcheck():
+def healthcheck() -> HealthCheckResponse:
     """Simple healthcheck that returns 200 OK."""
-    return {"status": "SUCCESS"}
+    return HealthCheckResponse(status="HEALTHY")

@@ -27,9 +27,7 @@ def check_projects_implementation() -> dict:
         for area in p["areas"].values():
             for key in ["name", "capacity", "lat", "lon"]:
                 if key not in area.keys():
-                    project_flaws.append(
-                        f"Area {area}: field {key} is missing."
-                    )
+                    project_flaws.append(f"Area {area}: field {key} is missing.")
 
         if len(list(p["cameras"].keys())) == 0:
             project_flaws.append(f"No cameras entered.")
@@ -38,9 +36,7 @@ def check_projects_implementation() -> dict:
         for camera, camera_settings in p["cameras"].items():
             for key in ["resolution", "position_settings"]:
                 if key not in camera_settings.keys():
-                    project_flaws.append(
-                        f"Camera {camera}: field {key} is missing."
-                    )
+                    project_flaws.append(f"Camera {camera}: field {key} is missing.")
 
             resolution_correct = False
             if not isinstance(camera_settings["resolution"], list):
@@ -99,9 +95,7 @@ def check_projects_implementation() -> dict:
                 "position_settings"
             ].items():
                 if "center_ground_plane" in position_settings.keys():
-                    if not isinstance(
-                        position_settings["center_ground_plane"], list
-                    ):
+                    if not isinstance(position_settings["center_ground_plane"], list):
                         project_flaws.append(
                             f"Field 'center_ground_plane' of camera {camera}, position {position} needs to be a list."
                         )
@@ -130,9 +124,7 @@ def check_projects_implementation() -> dict:
                             f"All of the fields 'center_ground_plane' and 'focal_length' must be given for camera {camera}, position {position} if one wants to do perspective transformations."
                         )
                 if "interpolation_settings" in position_settings.keys():
-                    if isinstance(
-                        position_settings["interpolation_settings"], dict
-                    ):
+                    if isinstance(position_settings["interpolation_settings"], dict):
                         project_flaws.append(
                             f"Camera {camera}, position {position}: field 'interpolation_settings' needs to be a dict."
                         )
@@ -144,9 +136,7 @@ def check_projects_implementation() -> dict:
                                 )
 
                 # --- Loop through area metadata ---
-                for area, area_metadata in position_settings[
-                    "area_metadata"
-                ].items():
+                for area, area_metadata in position_settings["area_metadata"].items():
                     if area not in p["areas"].keys():
                         project_flaws.append(
                             f"Camera {camera}, position {position}, area metadata {area}: Specified area not given in project field 'areas'."
@@ -176,8 +166,7 @@ def check_projects_implementation() -> dict:
                                 else:
                                     if resolution_correct:
                                         if (
-                                            edge[0]
-                                            > camera_settings["resolution"][0]
+                                            edge[0] > camera_settings["resolution"][0]
                                             or edge[1]
                                             > camera_settings["resolution"][1]
                                         ):

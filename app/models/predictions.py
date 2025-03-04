@@ -1,28 +1,15 @@
-from shapely.geometry import Polygon
 from datetime import time
 from pydantic import BaseModel
+from shapely import Polygon
 
 
-# ------------------------------------------------------------------------------
 class Mask:
     def __init__(self, name: str, polygon: Polygon, interpolate: bool):
-        if not isinstance(name, str):
-            raise ValueError("name must be a string")
-
-        if not isinstance(polygon, Polygon):
-            raise ValueError(
-                "polygon must be an instance of shapely.geometry.Polygon"
-            )
-
-        if not isinstance(interpolate, bool):
-            raise ValueError("interpolate must be a boolean")
-
         self.name = name
         self.interpolate = interpolate
         self.polygon = polygon
 
 
-# ------------------------------------------------------------------------------
 class ModelSchedule(BaseModel, extra="forbid"):
     lightshow_start: time
     lightshow_end: time
@@ -47,20 +34,6 @@ class ModelSchedule(BaseModel, extra="forbid"):
             # Interval spans across midnight
             return (
                 "lightshow"
-                if self.lightshow_start < check_time
-                or check_time < self.lightshow_end
+                if self.lightshow_start < check_time or check_time < self.lightshow_end
                 else "standard"
             )
-
-
-# ------------------------------------------------------------------------------
-class PredictReturnParams(BaseModel, extra="forbid"):
-    id: str
-    camera: str
-    position: str
-    project: str
-    timestamp: str
-    counts: dict[str, int]
-
-    def to_cosmosdb_entry(self) -> dict:
-        return self.model_dump()
