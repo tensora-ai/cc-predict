@@ -32,8 +32,8 @@ def check_api_key(key: str):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app_resources["models"] = {
-        "standard": initialize_model(os.environ["STANDARD_MODEL"]),
-        "lightshow": initialize_model(os.environ["LIGHTSHOW_MODEL"]),
+        "standard": initialize_model(os.environ["STANDARD_MODEL_NAME"]),
+        "lightshow": initialize_model(os.environ["LIGHTSHOW_MODEL_NAME"]),
     }
     app_resources["cosmosdb"] = create_cosmos_db_client("predictions")
 
