@@ -56,8 +56,8 @@ app = FastAPI(
 # ------------------------------------------------------------------------------
 # Health check endpoint
 # ------------------------------------------------------------------------------
-@app.get("/health-check")
-def health_check(key: str = Depends(check_api_key)):
+@app.get("/")
+def health_check():
     """Simple healthcheck that returns 200 OK."""
     return {"status": "SUCCESS"}
 
