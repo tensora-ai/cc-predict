@@ -6,10 +6,10 @@ output "cosmos_db_endpoint" {
 output "storage_account_name" {
   description = "The name of the storage account"
   value       = azurerm_storage_account.count.name
-  
+
 }
 
 output "app_service_endpoint" {
   description = "The endpoint of the app service hosting the Count Predictions backend"
-  value       = azurerm_linux_web_app.count_backend.default_hostname
+  value       = azurerm_linux_web_app.count_predictions.default_site_hostname
 }

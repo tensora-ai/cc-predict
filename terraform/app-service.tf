@@ -39,7 +39,7 @@ resource "azurerm_linux_web_app" "count_predictions" {
   site_config {
     application_stack {
       docker_image_name        = "count-${var.customer}-${var.environment}-predictions:latest"
-      docker_registry_url      = "https://${azurerm_container_registry.count.login_server}"
+      docker_registry_url      = "https://${data.azurerm_container_registry.count.login_server}"
       docker_registry_username = data.azurerm_container_registry.count.admin_username
       docker_registry_password = data.azurerm_container_registry.count.admin_password
     }
