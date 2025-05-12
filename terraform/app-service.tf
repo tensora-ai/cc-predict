@@ -9,7 +9,7 @@ resource "azurerm_service_plan" "count_predictions" {
   location            = var.location
 
   os_type  = "Linux"
-  sku_name = "P0v3"
+  sku_name = "P5mv3"
 
   tags = {
     project_name = "Tensora Count"
