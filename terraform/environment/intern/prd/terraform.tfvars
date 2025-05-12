@@ -1,5 +1,5 @@
 subscription_id      = "ef3ac21e-bc8a-4281-848b-3e98aab8f89e"
-location             = "North Europe"
+location             = "Sweden Central"
 customer             = "intern"
 environment          = "prd"
 api_key              = "e5h1si8l0n6x"
