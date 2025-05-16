@@ -10,7 +10,7 @@ from app.models.models import ModelSchedule
 
 
 # ------------------------------------------------------------------------------
-def process_project_metadata() -> tuple[dict, dict]:
+def process_project_metadata() -> tuple[dict, dict, dict, dict]:
     """Creates masks and gridded indices for all projects defined in the corresponding CosmosDB container."""
     projects_client = create_cosmos_db_client("projects")
     projects = projects_client.query_items(

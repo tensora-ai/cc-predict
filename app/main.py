@@ -6,106 +6,112 @@ from fastapi import FastAPI, Depends, HTTPException, Request
 
 from app.models.models import PredictReturnParams
 
+from app.repositories.project_repository import ProjectRepository
+from app.services.camera_service import CameraService
+from app.services.prediction_service import PredictionService
+from app.services.project_service import ProjectService
 from app.utils import (
     initialize_model,
-    process_project_metadata,
     create_cosmos_db_client,
 )
 
-from app.routes.predict import predict_endpoint_implementation
-from app.routes.check_database import check_projects_implementation
+from app.repositories.project_repository import ProjectRepository
+from app.services.project_service import ProjectService
 
+# Load environment variables
 load_dotenv()
 
-# ------------------------------------------------------------------------------
-# FastAPI server
-# ------------------------------------------------------------------------------
-app_resources = {}
 
-
+# Helper function to check for API key
 def check_api_key(key: str):
     if not key or key != os.environ["API_KEY"]:
         raise HTTPException(status_code=403, detail="Invalid API Key")
     return key
 
 
+# Initialize app resources
+app_resources = {}
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """Lifespan event handler to initialize resources."""
+
+    # Initialize repositories and services
+    project_repository = ProjectRepository()
+    project_service = ProjectService(project_repository)
+    camera_service = CameraService(project_service)
+
+    # Initialize models
     app_resources["models"] = {
         "standard": initialize_model(os.environ["STANDARD_MODEL_NAME"]),
         "lightshow": initialize_model(os.environ["LIGHTSHOW_MODEL_NAME"]),
     }
+
+    # Initialize CosmosDB clinet for predictions
     app_resources["cosmosdb"] = create_cosmos_db_client("predictions")
 
-    (
-        app_resources["masks"],
-        app_resources["interpolators"],
-        app_resources["gridded_indices"],
-        app_resources["model_schedules"],
-    ) = process_project_metadata()
+    # Store services in app resources
+    app_resources["project_service"] = project_service
+    app_resources["camera_service"] = camera_service
 
     yield
     app_resources.clear()
 
 
+# Build the FastAPI app with the lifespan context manager
 app = FastAPI(
     title="Tensora Count - Predict Backend", version="1.0.0", lifespan=lifespan
 )
 
 
-# ------------------------------------------------------------------------------
-# Health check endpoint
-# ------------------------------------------------------------------------------
+# Healthcheck endpoint
 @app.get("/")
 def health_check():
     """Simple healthcheck that returns 200 OK."""
     return {"status": "SUCCESS"}
 
 
-# ------------------------------------------------------------------------------
-# Predict endpoint
-# ------------------------------------------------------------------------------
+# Prediction endpoint
 @app.post("/predict")
 async def predict_endpoint(
     request: Request,
     camera: str,
     project: str,
     position: str = "standard",
-    save_predictions: str = "true",
+    save_predictions: bool = True,
     key: str = Depends(check_api_key),
 ) -> PredictReturnParams:
     """Returns a prediction for the image given in the request body.
     If specified, saves the image, returned predictions and heatmaps to the cloud.
     """
-    if save_predictions.lower() in ["true", "1"]:
-        save_predictions_bool = True
-    elif save_predictions.lower() in ["false", "0"]:
-        save_predictions_bool = False
-    else:
-        raise HTTPException(
-            status_code=500,
-            detail="Error, invalid value for parameter 'save_predictions' provided.",
+    # Get image data
+    image_bytes = await request.body()
+
+    # Create prediction service if not cached
+    if "prediction_service" not in app_resources:
+        app_resources["prediction_service"] = PredictionService(
+            camera_service=app_resources["camera_service"],
+            models=app_resources["models"],
+            cosmosdb_client=app_resources["cosmosdb"],
         )
 
-    return predict_endpoint_implementation(
-        project=project,
-        camera=camera,
+    # Call service to handle prediction logic
+    return app_resources["prediction_service"].predict(
+        project_id=project,
+        camera_id=camera,
         position=position,
-        save_predictions=save_predictions_bool,
-        image_bytes=await request.body(),
-        models=app_resources["models"],
-        cosmosdb_client=app_resources["cosmosdb"],
-        interpolators=app_resources["interpolators"][project],
-        masks=app_resources["masks"][project],
-        gridded_indices=app_resources["gridded_indices"][project],
-        model_schedules=app_resources["model_schedules"][project],
+        image_bytes=image_bytes,
+        save_predictions=save_predictions,
     )
 
 
-# ------------------------------------------------------------------------------
-# Check 'projects' container format endpoint
-# ------------------------------------------------------------------------------
 @app.get("/check-projects")
 def check_projects(key: str = Depends(check_api_key)) -> dict:
     """An endpoint that checks if all entries in the 'projects' CosmosDB container have the correct format."""
-    return check_projects_implementation()
+    # Call the project service to perform validation
+    if "project_service" not in app_resources:
+
+        app_resources["project_service"] = ProjectService(ProjectRepository())
+
+    return {"flaws": app_resources["project_service"].check_projects()}
