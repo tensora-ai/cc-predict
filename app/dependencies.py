@@ -81,7 +81,6 @@ class PredictionServiceBorg(Borg):
         if not hasattr(self, "prediction_service"):
             print("Initializing PredictionService")
             self.prediction_service = PredictionService(
-                self,
                 camera_service=camera_service,
                 models=models,
                 cosmosdb_client=cosmosdb_client,
@@ -95,13 +94,13 @@ def get_project_repository() -> ProjectRepository:
 def get_project_service(
     repository: Annotated[ProjectRepository, Depends(get_project_repository)],
 ) -> ProjectService:
-    return ProjectServiceBorg(repository).project_service
+    return ProjectServiceBorg(repository=repository).project_service
 
 
 def get_camera_service(
     project_service: Annotated[ProjectService, Depends(get_project_service)],
 ) -> CameraService:
-    return CameraServiceBorg(project_service).camera_service
+    return CameraServiceBorg(project_service=project_service).camera_service
 
 
 def get_models() -> Dict[CountingModel, DMCount]:
@@ -118,5 +117,5 @@ def get_prediction_service(
     cosmosdb_client: Annotated[ContainerProxy, Depends(get_cosmosdb_client)],
 ) -> PredictionService:
     return PredictionServiceBorg(
-        camera_service, models, cosmosdb_client
+        camera_service=camera_service, models=models, cosmosdb_client=cosmosdb_client
     ).prediction_service
