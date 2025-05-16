@@ -13,7 +13,7 @@ import io
 # ------------------------------------------------------------------------------
 def create_blob_client(container_name: str, blob_name: str):
     blob_service_client = BlobServiceClient.from_connection_string(
-        os.environ["BLOB_CONNECTION_STRING"]
+        os.getenv("BLOB_CONNECTION_STRING")
     )
     return blob_service_client.get_blob_client(container=container_name, blob=blob_name)
 

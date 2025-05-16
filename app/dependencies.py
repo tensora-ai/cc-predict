@@ -57,10 +57,10 @@ class ModelManagerBorg(Borg):
             logger.info("Initializing ML models")
             self.models = {
                 CountingModel.STANDARD: initialize_model(
-                    os.environ["STANDARD_MODEL_NAME"]
+                    os.getenv("STANDARD_MODEL_NAME")
                 ),
                 CountingModel.LIGHTSHOW: initialize_model(
-                    os.environ["LIGHTSHOW_MODEL_NAME"]
+                    os.getenv("LIGHTSHOW_MODEL_NAME")
                 ),
             }
 
