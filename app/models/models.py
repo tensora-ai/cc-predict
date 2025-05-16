@@ -1,5 +1,4 @@
 from shapely.geometry import Polygon
-from datetime import time
 from pydantic import BaseModel
 
 

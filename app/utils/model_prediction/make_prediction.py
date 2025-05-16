@@ -41,11 +41,26 @@ def initialize_model(model_name: str) -> DMCount:
     """Initializes the model and loads the weights from the blob storage. Returns the initialized model."""
     model = DMCount()
     model.to(device)
+
+    # Load model weights from blob storage
     print(f"Loading model {model_name} from blob storage...")
-    model.load_state_dict(
-        torch.load(io.BytesIO(download_model(model_name)), map_location="cpu")
-    )
+    model_blob: io.BytesIO = download_model(model_name)
+    if model_blob is None:
+        raise ValueError(f"Model {model_name} not found in blob storage.")
+    print(f"Model {model_name} downloaded successfully.")
+
+    # Load model weights with torch
+    print(f"Loading model {model_name} weights...")
+    loaded_model = torch.load(model_blob, map_location="cpu")
+    if loaded_model is None:
+        raise ValueError(f"Model {model_name} weights not found in blob storage.")
+    print(f"Model {model_name} weights loaded successfully.")
+
+    # Load model weights into the model
+    print(f"Loading model {model_name} into model...")
+    model.load_state_dict(loaded_model)
     print(f"Model {model_name} loaded successfully.")
+
     model.eval()
     return model
 
