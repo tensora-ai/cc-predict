@@ -100,7 +100,7 @@ def save_downsized_image_to_blob(image_bytes, image_name) -> None:
     # Upload the downsized image to blob storage
     blob_client = create_blob_client(
         container_name="images",
-        blobl_name=f"{image_name}_small.jpg",
+        blob_name=f"{image_name}_small.jpg",
     )
     blob_client.upload_blob(resized_image_bytes)
 
