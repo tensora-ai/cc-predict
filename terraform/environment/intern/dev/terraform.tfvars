@@ -1,7 +1,7 @@
 subscription_id      = "ef3ac21e-bc8a-4281-848b-3e98aab8f89e"
 location             = "West US 2"
 customer             = "intern"
-environment          = "prd"
+environment          = "dev"
 api_key              = "e5h1si8l0n6x"
 standard_model_name  = "model_nwpu.pth"
 lightshow_model_name = "model_0725.pth"

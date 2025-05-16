@@ -1,9 +1,9 @@
 import numpy as np
 
-from app.utils.startup.perspective.perspective_transformer import (
+from app.utils.perspective.perspective_transformer import (
     PerspectiveTransformer,
 )
-from app.utils.model_prediction.make_prediction import fixed_width, fixed_height
+from app.utils.prediction.make_prediction import fixed_width, fixed_height
 
 
 # ------------------------------------------------------------------------------

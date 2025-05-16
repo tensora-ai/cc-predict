@@ -11,18 +11,18 @@ import io
 # ------------------------------------------------------------------------------
 # Ancillary definitions
 # ------------------------------------------------------------------------------
-def create_blob_client(blob_name, file_name):
+def create_blob_client(container_name: str, blob_name: str):
     blob_service_client = BlobServiceClient.from_connection_string(
-        os.environ["BLOB_CONNECTION_STRING"]
+        os.getenv("BLOB_CONNECTION_STRING")
     )
-    return blob_service_client.get_blob_client(blob_name, file_name)
+    return blob_service_client.get_blob_client(container=container_name, blob=blob_name)
 
 
 # ------------------------------------------------------------------------------
 def save_json_to_blob(json_data, file_name):
     blob_client = create_blob_client(
-        blob_name="predictions",
-        file_name=file_name,
+        container_name="predictions",
+        blob_name=file_name,
     )
     json_bytes = json.dumps(json_data).encode("utf-8")
     blob_client.upload_blob(json_bytes)
@@ -31,19 +31,24 @@ def save_json_to_blob(json_data, file_name):
 # ------------------------------------------------------------------------------
 # Helper functions
 # ------------------------------------------------------------------------------
-def download_model(model_name: str):
+def download_model(model_name: str) -> io.BytesIO:
     blob_client = create_blob_client(
-        blob_name="models",
-        file_name=f"{model_name}.pth",
+        container_name="models",
+        blob_name=model_name,
     )
-    return blob_client.download_blob().readall()
+    blob_content: bytes = blob_client.download_blob().readall()
+
+    return io.BytesIO(blob_content)
 
 
 # ------------------------------------------------------------------------------
 def create_cosmos_db_client(container_name: str):
 
     # Initialize CosmosDB client
-    client = CosmosClient(url=os.getenv("COSMOS_DB_ENDPOINT"), credential=os.getenv("COSMOS_DB_PRIMARY_KEY"))
+    client = CosmosClient(
+        url=os.getenv("COSMOS_DB_ENDPOINT"),
+        credential=os.getenv("COSMOS_DB_PRIMARY_KEY"),
+    )
 
     # Get a reference to the database
     database = client.get_database_client(os.getenv("COSMOS_DB_DATABASE_NAME"))
@@ -53,7 +58,9 @@ def create_cosmos_db_client(container_name: str):
 
 # ------------------------------------------------------------------------------
 def save_image_to_blob(image_bytes, image_name) -> None:
-    blob_client = create_blob_client(blob_name="images", file_name=f"{image_name}.jpg")
+    blob_client = create_blob_client(
+        container_name="images", blob_name=f"{image_name}.jpg"
+    )
     blob_client.upload_blob(image_bytes)
 
 
@@ -91,8 +98,8 @@ def save_downsized_image_to_blob(image_bytes, image_name) -> None:
 
     # Upload the downsized image to blob storage
     blob_client = create_blob_client(
-        blob_name="images",
-        file_name=f"{image_name}_small.jpg",
+        container_name="images",
+        blob_name=f"{image_name}_small.jpg",
     )
     blob_client.upload_blob(resized_image_bytes)
 

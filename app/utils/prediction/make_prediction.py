@@ -4,8 +4,11 @@ from PIL import Image
 from shapely.geometry import Point
 from torchvision.transforms import transforms
 
-from app.utils.model_prediction.dm_count import DMCount
+from app.core.logging import get_logger
+from app.utils.prediction.dm_count import DMCount
 from app.utils.database_helper_functions import download_model
+
+logger = get_logger(__name__)
 
 # ------------------------------------------------------------------------------
 # Helper definitions and functions
@@ -17,9 +20,7 @@ device = torch.device("cpu")
 img_transform = transforms.Compose(
     [
         transforms.ToTensor(),
-        transforms.Normalize(
-            mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
-        ),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ]
 )
 
@@ -39,13 +40,30 @@ def resize(image: Image):
 
 
 # ------------------------------------------------------------------------------
-def initialize_model(model_name: str):
+def initialize_model(model_name: str) -> DMCount:
     """Initializes the model and loads the weights from the blob storage. Returns the initialized model."""
     model = DMCount()
     model.to(device)
-    model.load_state_dict(
-        torch.load(io.BytesIO(download_model(model_name)), map_location="cpu")
-    )
+
+    # Load model weights from blob storage
+    logger.info(f"Loading model {model_name} from blob storage...")
+    model_blob: io.BytesIO = download_model(model_name)
+    if model_blob is None:
+        raise ValueError(f"Model {model_name} not found in blob storage.")
+    logger.info(f"Model {model_name} downloaded successfully.")
+
+    # Load model weights with torch
+    logger.info(f"Loading model {model_name} weights...")
+    loaded_model = torch.load(model_blob, map_location="cpu")
+    if loaded_model is None:
+        raise ValueError(f"Model {model_name} weights not found in blob storage.")
+    logger.info(f"Model {model_name} weights loaded successfully.")
+
+    # Load model weights into the model
+    logger.info(f"Loading model {model_name} into model...")
+    model.load_state_dict(loaded_model)
+    logger.info(f"Model {model_name} loaded successfully.")
+
     model.eval()
     return model
 
