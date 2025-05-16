@@ -16,7 +16,7 @@ data "azurerm_cosmosdb_account" "count" {
 data "azurerm_cosmosdb_sql_database" "count" {
   name                = "cosmos-count-${var.customer}-${var.environment}"
   resource_group_name = "rg-count-${var.customer}-${var.environment}-storage"
-  account_name        = azurerm_cosmosdb_account.count.name
+  account_name        = data.azurerm_cosmosdb_account.count.name
 }
 
 resource "azurerm_service_plan" "count_predictions" {
