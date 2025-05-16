@@ -10,6 +10,7 @@ from app.utils.camera_utils import (
     create_interpolator_for_camera,
     calculate_gridded_indices_for_camera,
 )
+from app.utils.model_prediction.dm_count import DMCount
 from app.utils.model_prediction.make_prediction import make_prediction
 from app.utils.database_helper_functions import (
     save_density_to_blob,
@@ -26,7 +27,7 @@ class PredictionService:
     def __init__(
         self,
         camera_service: CameraService,
-        models: Dict[str, Any],
+        models: Dict[CountingModel, DMCount],
         cosmosdb_client: Any,
     ):
         """
@@ -91,18 +92,15 @@ class PredictionService:
         camera_config, area = config_result
 
         # Get active model using the camera's scheduling method
-        active_model = self._camera_service.get_active_model(
+        active_model_name = self._camera_service.get_active_model(
             project_id, camera_id, now.time()
-        )
-        model_name = (
-            "lightshow" if active_model == CountingModel.MODEL_0725 else "standard"
         )
 
         # --- Make prediction ---
         try:
             # Set up relevant arguments
             pred_args = {
-                "model": self._models[model_name],
+                "model": self._models[active_model_name],
                 "image_bytes": image_bytes,
             }
 

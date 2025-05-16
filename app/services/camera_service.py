@@ -49,6 +49,6 @@ class CameraService:
         """Get the active model for a camera at the current time."""
         camera = self.get_camera(project_id, camera_id)
         if not camera:
-            return CountingModel.MODEL_0725  # Default fallback
+            return CountingModel.STANDARD  # Default fallback
 
         return camera.get_active_model(current_time)

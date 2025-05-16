@@ -19,9 +19,7 @@ class PerspectiveTransformer:
 
         self.focal_length = focal_length
 
-        cam_center_plane = np.array(
-            [cam_center[0], 0.0, cam_center[1]], dtype="double"
-        )
+        cam_center_plane = np.array([cam_center[0], 0.0, cam_center[1]], dtype="double")
         self.__calculate_rotation_and_translation__(
             np.array(cam_position, dtype="double"), cam_center_plane
         )
@@ -70,9 +68,7 @@ class PerspectiveTransformer:
         self.transl_vec = self.rot_mat @ (-cam_position)
 
     # --------------------------------------------------------------------------
-    def __calculate_rotation_matrix__(
-        self, axis: np.array, theta: float
-    ) -> np.array:
+    def __calculate_rotation_matrix__(self, axis: np.array, theta: float) -> np.array:
         """Calculates the rotation matrix for a given axis and angle using the Rodrigues formula."""
         K = np.array(
             [

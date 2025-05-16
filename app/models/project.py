@@ -6,8 +6,8 @@ from pydantic import BaseModel, model_validator
 
 
 class CountingModel(str, Enum):
-    MODEL_0725 = "model_0725.pth"
-    MODEL_NWPU = "model_nwpu.pth"
+    STANDARD = "model_nwpu.pth"
+    LIGHTSHOW = "model_0725.pth"
 
 
 class TimeAtDay(BaseModel):
@@ -46,7 +46,7 @@ class Camera(BaseModel):
     resolution: Tuple[int, int]
     sensor_size: Optional[Tuple[float, float]] = None
     coordinates_3d: Optional[Tuple[float, float, float]] = None
-    default_model: Optional[CountingModel] = CountingModel.MODEL_0725
+    default_model: Optional[CountingModel] = CountingModel.STANDARD
     model_schedules: List[ModelSchedule] = []
 
     @model_validator(mode="after")
@@ -113,7 +113,7 @@ class Camera(BaseModel):
                 return schedule.model
 
         # No active schedule, use default model
-        return self.default_model or CountingModel.MODEL_0725
+        return self.default_model or CountingModel.STANDARD
 
 
 class Position(BaseModel):

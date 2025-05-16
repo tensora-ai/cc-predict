@@ -34,7 +34,7 @@ def save_json_to_blob(json_data, file_name):
 def download_model(model_name: str):
     blob_client = create_blob_client(
         blob_name="models",
-        file_name=f"{model_name}.pth",
+        file_name=model_name,
     )
     return blob_client.download_blob().readall()
 
@@ -43,7 +43,10 @@ def download_model(model_name: str):
 def create_cosmos_db_client(container_name: str):
 
     # Initialize CosmosDB client
-    client = CosmosClient(url=os.getenv("COSMOS_DB_ENDPOINT"), credential=os.getenv("COSMOS_DB_PRIMARY_KEY"))
+    client = CosmosClient(
+        url=os.getenv("COSMOS_DB_ENDPOINT"),
+        credential=os.getenv("COSMOS_DB_PRIMARY_KEY"),
+    )
 
     # Get a reference to the database
     database = client.get_database_client(os.getenv("COSMOS_DB_DATABASE_NAME"))

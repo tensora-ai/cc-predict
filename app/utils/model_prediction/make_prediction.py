@@ -17,9 +17,7 @@ device = torch.device("cpu")
 img_transform = transforms.Compose(
     [
         transforms.ToTensor(),
-        transforms.Normalize(
-            mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
-        ),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ]
 )
 
@@ -39,13 +37,15 @@ def resize(image: Image):
 
 
 # ------------------------------------------------------------------------------
-def initialize_model(model_name: str):
+def initialize_model(model_name: str) -> DMCount:
     """Initializes the model and loads the weights from the blob storage. Returns the initialized model."""
     model = DMCount()
     model.to(device)
+    print(f"Loading model {model_name} from blob storage...")
     model.load_state_dict(
         torch.load(io.BytesIO(download_model(model_name)), map_location="cpu")
     )
+    print(f"Model {model_name} loaded successfully.")
     model.eval()
     return model
 

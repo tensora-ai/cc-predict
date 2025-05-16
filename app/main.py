@@ -6,17 +6,15 @@ from fastapi import FastAPI, Depends, HTTPException, Request
 
 from app.models.models import PredictReturnParams
 
+from app.models.project import CountingModel
 from app.repositories.project_repository import ProjectRepository
 from app.services.camera_service import CameraService
 from app.services.prediction_service import PredictionService
 from app.services.project_service import ProjectService
-from app.utils import (
-    initialize_model,
-    create_cosmos_db_client,
-)
-
 from app.repositories.project_repository import ProjectRepository
 from app.services.project_service import ProjectService
+from app.utils.database_helper_functions import create_cosmos_db_client
+from app.utils.model_prediction.make_prediction import initialize_model
 
 # Load environment variables
 load_dotenv()
@@ -44,8 +42,8 @@ async def lifespan(app: FastAPI):
 
     # Initialize models
     app_resources["models"] = {
-        "standard": initialize_model(os.environ["STANDARD_MODEL_NAME"]),
-        "lightshow": initialize_model(os.environ["LIGHTSHOW_MODEL_NAME"]),
+        CountingModel.STANDARD: initialize_model(os.environ["STANDARD_MODEL_NAME"]),
+        CountingModel.LIGHTSHOW: initialize_model(os.environ["LIGHTSHOW_MODEL_NAME"]),
     }
 
     # Initialize CosmosDB clinet for predictions
