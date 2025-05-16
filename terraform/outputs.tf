@@ -5,7 +5,7 @@ output "cosmos_db_endpoint" {
 
 output "storage_account_name" {
   description = "The name of the storage account"
-  value       = azurerm_storage_account.count.name
+  value       = data.azurerm_storage_account.count.name
 
 }
 
