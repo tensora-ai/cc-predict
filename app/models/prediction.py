@@ -18,7 +18,7 @@ class Mask:
         self.polygon = polygon
 
 
-class PredictReturnParams(BaseModel, extra="forbid"):
+class PredictionResponse(BaseModel, extra="forbid"):
     id: str
     camera: str
     position: str

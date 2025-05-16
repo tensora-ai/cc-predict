@@ -1,7 +1,7 @@
 from datetime import datetime
 from fastapi import HTTPException
 
-from app.models.models import PredictReturnParams
+from app.models.prediction import PredictionResponse
 
 from app.utils.model_prediction.make_prediction import make_prediction
 from app.utils.database_helper_functions import (
@@ -26,13 +26,11 @@ def predict_endpoint_implementation(
     masks,
     gridded_indices,
     model_schedules,
-) -> PredictReturnParams:
+) -> PredictionResponse:
     # --- Preparatory definitions ---
     now = datetime.now()
     camera_pos = f"{camera}_{position}"
-    prediction_id = (
-        f"{project}-{camera}-{position}-{now.strftime('%Y_%m_%d-%H_%M_%S')}"
-    )
+    prediction_id = f"{project}-{camera}-{position}-{now.strftime('%Y_%m_%d-%H_%M_%S')}"
 
     # --- Make prediction ---
     try:
@@ -72,9 +70,7 @@ def predict_endpoint_implementation(
                 image_name=prediction_id,
             )
 
-            save_image_to_blob(
-                image_bytes=image_bytes, image_name=prediction_id
-            )
+            save_image_to_blob(image_bytes=image_bytes, image_name=prediction_id)
 
             save_downsized_image_to_blob(
                 image_bytes=image_bytes, image_name=prediction_id
@@ -98,7 +94,7 @@ def predict_endpoint_implementation(
             )
 
     # --- Save prediction results to CosmosDB ---
-    prediction = PredictReturnParams(
+    prediction = PredictionResponse(
         id=prediction_id,
         project=project,
         camera=camera,

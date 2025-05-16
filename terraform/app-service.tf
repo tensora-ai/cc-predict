@@ -71,6 +71,7 @@ resource "azurerm_linux_web_app" "count_predictions" {
     WEBSITES_CONTAINER_START_LIMIT      = 1800
     WEBSITES_PORT                       = 8000
     API_KEY                             = var.api_key
+    API_BASE_URL                        = "/api/v1"
     BLOB_CONNECTION_STRING              = data.azurerm_storage_account.count.primary_connection_string
     COSMOS_DB_ENDPOINT                  = data.azurerm_cosmosdb_account.count.endpoint
     COSMOS_DB_PRIMARY_KEY               = data.azurerm_cosmosdb_account.count.primary_key

@@ -2,7 +2,7 @@ from typing import List, Dict, Optional
 from shapely.geometry import Polygon
 
 from app.models.project import Camera, CameraConfig, Position
-from app.models.models import Mask
+from app.models.prediction import Mask
 from app.utils.model_prediction.make_prediction import fixed_width, fixed_height
 from app.utils.startup.selective_idw_interpolator import SIDWInterpolator
 from app.utils.startup.perspective.perspective_transformer import PerspectiveTransformer

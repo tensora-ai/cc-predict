@@ -3,7 +3,7 @@ from typing import Dict, Any
 from fastapi import HTTPException
 
 from app.models.project import CountingModel
-from app.models.models import PredictReturnParams
+from app.models.prediction import PredictionResponse
 from app.services.camera_service import CameraService
 from app.utils.camera_utils import (
     create_masks_for_camera,
@@ -49,7 +49,7 @@ class PredictionService:
         position: str,
         image_bytes: bytes,
         save_predictions: bool = True,
-    ) -> PredictReturnParams:
+    ) -> PredictionResponse:
         """
         Makes a prediction using the appropriate model based on camera configuration.
 
@@ -61,7 +61,7 @@ class PredictionService:
             save_predictions: Whether to save prediction artifacts to blob storage
 
         Returns:
-            PredictReturnParams with prediction results
+            PredictionResponse with prediction results
 
         Raises:
             HTTPException: If camera/config not found or errors during prediction
@@ -141,7 +141,7 @@ class PredictionService:
                 )
 
         # --- Create and save prediction results ---
-        prediction = PredictReturnParams(
+        prediction = PredictionResponse(
             id=prediction_id,
             project=project_id,
             camera=camera_id,
