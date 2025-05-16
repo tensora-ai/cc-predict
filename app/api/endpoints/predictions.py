@@ -1,16 +1,17 @@
 from fastapi import APIRouter, Depends, Request
+from typing import Annotated
 
 from app.models.prediction import PredictionResponse
 from app.services.prediction_service import PredictionService
 from app.utils.auth_utils import check_api_key
-from app.main import app_resources
-
+from app.dependencies import get_prediction_service
 
 router = APIRouter()
 
 
 @router.post("")
 async def predict(
+    prediction_service: Annotated[PredictionService, Depends(get_prediction_service)],
     request: Request,
     camera: str,
     project: str,
@@ -23,8 +24,6 @@ async def predict(
     """
     # Get image data
     image_bytes = await request.body()
-
-    prediction_service: PredictionService = app_resources["prediction_service"]
 
     # Call service to handle prediction logic
     return prediction_service.predict(
