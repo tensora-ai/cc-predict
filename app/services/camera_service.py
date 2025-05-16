@@ -2,7 +2,6 @@ from typing import Optional, Tuple
 from datetime import time
 
 from app.models.project import Camera, CameraConfig, CountingModel, Area
-from app.models.prediction import Mask
 from app.services.project_service import ProjectService
 
 

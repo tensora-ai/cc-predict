@@ -3,9 +3,13 @@ from shapely.geometry import Polygon
 
 from app.models.project import Camera, CameraConfig, Position
 from app.models.prediction import Mask
-from app.utils.model_prediction.make_prediction import fixed_width, fixed_height
-from app.utils.startup.selective_idw_interpolator import SIDWInterpolator
-from app.utils.startup.perspective.perspective_transformer import PerspectiveTransformer
+from app.utils.prediction.make_prediction import fixed_width, fixed_height
+from app.utils.interpolation.selective_idw_interpolator import SIDWInterpolator
+from app.utils.perspective.perspective_transformer import (
+    PerspectiveTransformer,
+)
+from app.utils.prediction.make_prediction import fixed_width, fixed_height
+import numpy as np
 
 
 def create_masks_for_camera(
@@ -133,12 +137,6 @@ def calculate_gridded_indices_for_camera(
     This mapping allows us to transform the density map (which is in camera space)
     into a representation in real-world space.
     """
-    import numpy as np
-    from app.utils.startup.perspective.perspective_transformer import (
-        PerspectiveTransformer,
-    )
-    from app.utils.model_prediction.make_prediction import fixed_width, fixed_height
-
     # --- Input validation ---
     # Check if we have all required data for perspective transformation
     if not camera.sensor_size:

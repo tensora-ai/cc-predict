@@ -10,8 +10,8 @@ from app.utils.camera_utils import (
     create_interpolator_for_camera,
     calculate_gridded_indices_for_camera,
 )
-from app.utils.model_prediction.dm_count import DMCount
-from app.utils.model_prediction.make_prediction import make_prediction
+from app.utils.prediction.dm_count import DMCount
+from app.utils.prediction.make_prediction import make_prediction
 from app.utils.database_helper_functions import (
     save_density_to_blob,
     save_image_to_blob,

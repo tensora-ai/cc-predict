@@ -4,7 +4,7 @@ from PIL import Image
 from shapely.geometry import Point
 from torchvision.transforms import transforms
 
-from app.utils.model_prediction.dm_count import DMCount
+from app.utils.prediction.dm_count import DMCount
 from app.utils.database_helper_functions import download_model
 
 # ------------------------------------------------------------------------------

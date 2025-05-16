@@ -10,8 +10,8 @@ from app.services.project_service import ProjectService
 from app.services.camera_service import CameraService
 from app.services.prediction_service import PredictionService
 from app.utils.database_helper_functions import create_cosmos_db_client
-from app.utils.model_prediction.make_prediction import initialize_model
-from app.utils.model_prediction.dm_count import DMCount
+from app.utils.prediction.make_prediction import initialize_model
+from app.utils.prediction.dm_count import DMCount
 
 
 # Base Borg class - all derived classes will share state within their class
