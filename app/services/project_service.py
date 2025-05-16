@@ -1,4 +1,5 @@
 from typing import List, Optional
+from app.core.logging import get_logger
 from app.models.project import Project
 from app.repositories.project_repository import ProjectRepository
 
@@ -9,6 +10,7 @@ class ProjectService:
     def __init__(self, repository: ProjectRepository = None):
         """Initialize the service with a repository."""
         self._repository = repository or ProjectRepository()
+        self.logger = get_logger(self.__class__.__name__)
 
     def get_all_projects(self) -> List[Project]:
         """Get all projects as Pydantic models."""
@@ -21,7 +23,9 @@ class ProjectService:
                 project = Project.model_validate(project_data)
                 projects.append(project)
             except Exception as e:
-                print(f"Error parsing project {project_data.get('id', 'unknown')}: {e}")
+                self.logger.error(
+                    f"Error parsing project {project_data.get('id', 'unknown')}: {e}"
+                )
 
         return projects
 
@@ -35,7 +39,7 @@ class ProjectService:
             # Direct conversion from JSON to Pydantic
             return Project.model_validate(project_data)
         except Exception as e:
-            print(f"Error parsing project {project_id}: {e}")
+            self.logger.error(f"Error parsing project {project_id}: {e}")
             return None
 
     def check_projects(self) -> dict:

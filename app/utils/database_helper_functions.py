@@ -38,7 +38,6 @@ def download_model(model_name: str) -> io.BytesIO:
     )
     blob_content: bytes = blob_client.download_blob().readall()
 
-    print(f"Model {model_name} downloaded successfully.")
     return io.BytesIO(blob_content)
 
 

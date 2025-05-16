@@ -1,6 +1,7 @@
 from typing import List, Dict, Optional
 from shapely.geometry import Polygon
 
+from app.core.logging import get_logger
 from app.models.project import Camera, CameraConfig, Position
 from app.models.prediction import Mask
 from app.utils.prediction.make_prediction import fixed_width, fixed_height
@@ -10,6 +11,8 @@ from app.utils.perspective.perspective_transformer import (
 )
 from app.utils.prediction.make_prediction import fixed_width, fixed_height
 import numpy as np
+
+logger = get_logger(__name__)
 
 
 def create_masks_for_camera(
@@ -140,16 +143,16 @@ def calculate_gridded_indices_for_camera(
     # --- Input validation ---
     # Check if we have all required data for perspective transformation
     if not camera.sensor_size:
-        print(f"Missing sensor_size for camera {camera.id}")
+        logger.error(f"Missing sensor_size for camera {camera.id}")
         return None
     if not camera.coordinates_3d:
-        print(f"Missing coordinates_3d for camera {camera.id}")
+        logger.error(f"Missing coordinates_3d for camera {camera.id}")
         return None
     if not position.center_ground_plane:
-        print(f"Missing center_ground_plane for position {position.name}")
+        logger.error(f"Missing center_ground_plane for position {position.name}")
         return None
     if not position.focal_length:
-        print(f"Missing focal_length for position {position.name}")
+        logger.error(f"Missing focal_length for position {position.name}")
         return None
 
     # --- Constants ---
