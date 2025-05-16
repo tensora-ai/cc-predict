@@ -4,8 +4,11 @@ from PIL import Image
 from shapely.geometry import Point
 from torchvision.transforms import transforms
 
+from app.core.logging import get_logger
 from app.utils.prediction.dm_count import DMCount
 from app.utils.database_helper_functions import download_model
+
+logger = get_logger(__name__)
 
 # ------------------------------------------------------------------------------
 # Helper definitions and functions
@@ -43,23 +46,23 @@ def initialize_model(model_name: str) -> DMCount:
     model.to(device)
 
     # Load model weights from blob storage
-    print(f"Loading model {model_name} from blob storage...")
+    logger.info(f"Loading model {model_name} from blob storage...")
     model_blob: io.BytesIO = download_model(model_name)
     if model_blob is None:
         raise ValueError(f"Model {model_name} not found in blob storage.")
-    print(f"Model {model_name} downloaded successfully.")
+    logger.info(f"Model {model_name} downloaded successfully.")
 
     # Load model weights with torch
-    print(f"Loading model {model_name} weights...")
+    logger.info(f"Loading model {model_name} weights...")
     loaded_model = torch.load(model_blob, map_location="cpu")
     if loaded_model is None:
         raise ValueError(f"Model {model_name} weights not found in blob storage.")
-    print(f"Model {model_name} weights loaded successfully.")
+    logger.info(f"Model {model_name} weights loaded successfully.")
 
     # Load model weights into the model
-    print(f"Loading model {model_name} into model...")
+    logger.info(f"Loading model {model_name} into model...")
     model.load_state_dict(loaded_model)
-    print(f"Model {model_name} loaded successfully.")
+    logger.info(f"Model {model_name} loaded successfully.")
 
     model.eval()
     return model
